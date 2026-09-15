@@ -1,0 +1,394 @@
+<svg viewBox="0 0 1920 2220" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, 'Courier New', monospace">
+<defs>
+  <radialGradient id="auraGlow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#ff5290" stop-opacity="0.9"/>
+    <stop offset="55%" stop-color="#ff2d78" stop-opacity="0.35"/>
+    <stop offset="100%" stop-color="#ff2d78" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="burstGlow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#ffd166" stop-opacity="0.95"/>
+    <stop offset="60%" stop-color="#ff2d78" stop-opacity="0.4"/>
+    <stop offset="100%" stop-color="#ff2d78" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#ff8fb8"/>
+    <stop offset="100%" stop-color="#ff2d78"/>
+  </linearGradient>
+  <filter id="softGlow" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="5" result="blur"/>
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#ff6fae"/>
+  </marker>
+</defs>
+
+<!-- BACKGROUND -->
+<rect x="0" y="0" width="1920" height="2220" fill="#0a0710"/>
+<rect x="0" y="0" width="1920" height="2220" fill="none" stroke="#2a1a35" stroke-width="2"/>
+<g stroke="#160e20" stroke-width="1">
+  <line x1="120" y1="0" x2="120" y2="2220"/>
+  <line x1="980" y1="0" x2="980" y2="2220"/>
+  <line x1="1800" y1="0" x2="1800" y2="2220"/>
+</g>
+
+<!-- ================= A. TITLE ================= -->
+<text x="120" y="72" font-size="50" font-weight="700" fill="url(#titleGrad)" letter-spacing="1">FX REALTIME NIAGARA + SHADER MATERIAL</text>
+<text x="120" y="112" font-size="23" fill="#c9b6d4" letter-spacing="1">MATH-DRIVEN PROCEDURAL SKILL — NO SPRITE SHEET</text>
+<text x="1800" y="70" font-size="19" fill="#7a6a86" text-anchor="end">TECHNICAL ART / VFX BREAKDOWN SHEET</text>
+<text x="1800" y="96" font-size="19" fill="#7a6a86" text-anchor="end">PROJECT: CAT PAW STUN SKILL — UE5 NIAGARA</text>
+<line x1="120" y1="134" x2="1800" y2="134" stroke="#ff2d78" stroke-width="2" opacity="0.6"/>
+
+<!-- ================= B. MAIN SEQUENCE ================= -->
+<text x="120" y="186" font-size="22" fill="#ff8fb8" letter-spacing="3">01 — MAIN SKILL SEQUENCE (5 STAGES)</text>
+
+<!-- Stage 1: Activate Aura -->
+<g transform="translate(120,222)">
+  <rect width="320" height="560" rx="10" fill="#140c1c" stroke="#3a2340" stroke-width="2"/>
+  <rect x="0" y="0" width="320" height="48" rx="10" fill="#22102a"/>
+  <rect x="0" y="24" width="320" height="24" fill="#22102a"/>
+  <text x="18" y="32" font-size="26" font-weight="700" fill="#ff5290">01</text>
+  <text x="70" y="32" font-size="16" fill="#f5eef2" letter-spacing="1">PRESS E → ACTIVATE AURA</text>
+  <circle cx="160" cy="190" r="110" fill="url(#auraGlow)"/>
+  <circle cx="160" cy="190" r="72" fill="none" stroke="#ff6fae" stroke-width="2" opacity="0.7"/>
+  <polyline points="0.0,0.0 0.6,0.1 1.2,0.3 1.7,0.6 2.2,1.1 2.6,1.6 2.9,2.3 3.0,3.0 3.1,3.8 2.9,4.6 2.7,5.5 2.3,6.3 1.7,7.1 0.9,7.9 0.1,8.6 -1.0,9.1 -2.1,9.5 -3.3,9.8 -4.7,10.0 -6.1,9.9 -7.5,9.6 -9.0,9.2 -10.4,8.5 -11.8,7.6 -13.1,6.5 -14.4,5.2 -15.4,3.7 -16.4,2.1 -17.1,0.2 -17.6,-1.7 -17.9,-3.8 -18.0,-6.0 -17.8,-8.2 -17.2,-10.4 -16.5,-12.7 -15.4,-14.9 -14.0,-17.0 -12.4,-18.9 -10.5,-20.7 -8.3,-22.3 -5.9,-23.7 -3.3,-24.8 -0.5,-25.7 2.4,-26.2 5.4,-26.3 8.5,-26.2 11.6,-25.6 14.7,-24.7 17.7,-23.4 20.7,-21.7"
+    fill="none" stroke="#ffd8e8" stroke-width="3" stroke-linecap="round" filter="url(#softGlow)" transform="translate(160,192)"/>
+  <text x="160" y="332" font-size="13" fill="#e7b8cc" text-anchor="middle">SHELL SYMBOL FORMS IN AURA</text>
+  <text x="18" y="372" font-size="13" fill="#b9a4c4">
+    <tspan x="18" dy="0">Soft glowing pink aura surrounds</tspan>
+    <tspan x="18" dy="19">caster — fluffy, dreamy, and</tspan>
+    <tspan x="18" dy="19">suspended in space. Nearby</tspan>
+    <tspan x="18" dy="19">enemies enter a stun-lock state.</tspan>
+  </text>
+  <text x="18" y="548" font-size="12" fill="#6d5d78">NS_CatAura :: NE_Aura_Core / NE_Aura_Shell</text>
+</g>
+
+<!-- Stage 2: Spawn Paw Projectiles -->
+<g transform="translate(460,222)">
+  <rect width="320" height="560" rx="10" fill="#140c1c" stroke="#3a2340" stroke-width="2"/>
+  <rect x="0" y="0" width="320" height="48" rx="10" fill="#22102a"/>
+  <rect x="0" y="24" width="320" height="24" fill="#22102a"/>
+  <text x="18" y="32" font-size="26" font-weight="700" fill="#ff5290">02</text>
+  <text x="70" y="32" font-size="16" fill="#f5eef2" letter-spacing="1">SPAWN PAW PROJECTILES</text>
+  <g transform="translate(160,180)" filter="url(#softGlow)">
+    <ellipse cx="0" cy="30" rx="52" ry="42" fill="#ff2d78"/>
+    <circle cx="-58" cy="-28" r="22" fill="#ff5290"/>
+    <circle cx="-22" cy="-52" r="24" fill="#ff5290"/>
+    <circle cx="22" cy="-52" r="24" fill="#ff5290"/>
+    <circle cx="58" cy="-28" r="22" fill="#ff5290"/>
+  </g>
+  <text x="160" y="332" font-size="13" fill="#e7b8cc" text-anchor="middle">MATH-DRIVEN SDF SHAPE (NOT SPRITE)</text>
+  <text x="18" y="372" font-size="13" fill="#b9a4c4">
+    <tspan x="18" dy="0">Multiple glowing paw shapes</tspan>
+    <tspan x="18" dy="19">spawn procedurally via SDF math.</tspan>
+    <tspan x="18" dy="19">Includes a swappable shape slot</tspan>
+    <tspan x="18" dy="19">for later symbol changes.</tspan>
+  </text>
+  <text x="18" y="548" font-size="12" fill="#6d5d78">NS_CatPawProjectile :: M_CatPaw_SDF</text>
+</g>
+
+<!-- Stage 3: Dash -->
+<g transform="translate(800,222)">
+  <rect width="320" height="560" rx="10" fill="#140c1c" stroke="#3a2340" stroke-width="2"/>
+  <rect x="0" y="0" width="320" height="48" rx="10" fill="#22102a"/>
+  <rect x="0" y="24" width="320" height="24" fill="#22102a"/>
+  <text x="18" y="32" font-size="26" font-weight="700" fill="#ff5290">03</text>
+  <text x="70" y="32" font-size="16" fill="#f5eef2" letter-spacing="1">DASH / LAUNCH ATTACK</text>
+  <g transform="translate(140,180)">
+    <line x1="-90" y1="10" x2="10" y2="10" stroke="#ff6fae" stroke-width="4" opacity="0.85" filter="url(#softGlow)"/>
+    <line x1="-70" y1="-14" x2="0" y2="-14" stroke="#ff6fae" stroke-width="2" opacity="0.5"/>
+    <line x1="-70" y1="34" x2="0" y2="34" stroke="#ff6fae" stroke-width="2" opacity="0.5"/>
+    <g transform="translate(45,10)" filter="url(#softGlow)">
+      <ellipse cx="0" cy="18" rx="30" ry="24" fill="#ff2d78"/>
+      <circle cx="-32" cy="-16" r="13" fill="#ff5290"/>
+      <circle cx="-12" cy="-30" r="14" fill="#ff5290"/>
+      <circle cx="12" cy="-30" r="14" fill="#ff5290"/>
+      <circle cx="32" cy="-16" r="13" fill="#ff5290"/>
+    </g>
+  </g>
+  <text x="160" y="332" font-size="13" fill="#e7b8cc" text-anchor="middle">MOTION TRAIL + DIRECTIONAL ENERGY</text>
+  <text x="18" y="372" font-size="13" fill="#b9a4c4">
+    <tspan x="18" dy="0">Paw projectiles dash rapidly</tspan>
+    <tspan x="18" dy="19">toward the target. Trail +</tspan>
+    <tspan x="18" dy="19">energy streaks sell speed and</tspan>
+    <tspan x="18" dy="19">impact anticipation.</tspan>
+  </text>
+  <text x="18" y="548" font-size="12" fill="#6d5d78">BP_PawProjectile :: ProjectileMovementComponent</text>
+</g>
+
+<!-- Stage 4: Hit / Stun -->
+<g transform="translate(1140,222)">
+  <rect width="320" height="560" rx="10" fill="#140c1c" stroke="#3a2340" stroke-width="2"/>
+  <rect x="0" y="0" width="320" height="48" rx="10" fill="#22102a"/>
+  <rect x="0" y="24" width="320" height="24" fill="#22102a"/>
+  <text x="18" y="32" font-size="26" font-weight="700" fill="#ff5290">04</text>
+  <text x="70" y="32" font-size="16" fill="#f5eef2" letter-spacing="1">ENEMY HIT / STUN</text>
+  <circle cx="160" cy="190" r="90" fill="url(#burstGlow)"/>
+  <g stroke="#ffd166" stroke-width="4" filter="url(#softGlow)">
+    <line x1="160" y1="110" x2="160" y2="90"/>
+    <line x1="160" y1="270" x2="160" y2="290"/>
+    <line x1="80" y1="190" x2="60" y2="190"/>
+    <line x1="240" y1="190" x2="260" y2="190"/>
+    <line x1="105" y1="135" x2="90" y2="120"/>
+    <line x1="215" y1="135" x2="230" y2="120"/>
+    <line x1="105" y1="245" x2="90" y2="260"/>
+    <line x1="215" y1="245" x2="230" y2="260"/>
+  </g>
+  <rect x="112" y="178" width="96" height="26" rx="4" fill="#ffd166"/>
+  <text x="160" y="196" font-size="15" font-weight="700" fill="#2a1005" text-anchor="middle">STUN</text>
+  <text x="160" y="332" font-size="13" fill="#e7b8cc" text-anchor="middle">READABLE IMPACT + STATUS FEEDBACK</text>
+  <text x="18" y="372" font-size="13" fill="#b9a4c4">
+    <tspan x="18" dy="0">Enemy is visibly hit and enters</tspan>
+    <tspan x="18" dy="19">a clear stun state — reads as</tspan>
+    <tspan x="18" dy="19">disabled / interrupted at a</tspan>
+    <tspan x="18" dy="19">glance.</tspan>
+  </text>
+  <text x="18" y="548" font-size="12" fill="#6d5d78">StatusComponent :: ApplyStatus(Stun, 2.5s)</text>
+</g>
+
+<!-- Stage 5: Gold / Cat Lick -->
+<g transform="translate(1480,222)">
+  <rect width="320" height="560" rx="10" fill="#140c1c" stroke="#3a2340" stroke-width="2"/>
+  <rect x="0" y="0" width="320" height="48" rx="10" fill="#22102a"/>
+  <rect x="0" y="24" width="320" height="24" fill="#22102a"/>
+  <text x="18" y="32" font-size="26" font-weight="700" fill="#ff5290">05</text>
+  <text x="70" y="32" font-size="15" fill="#f5eef2" letter-spacing="1">GOLD COST / CAT LICK</text>
+  <circle cx="115" cy="185" r="34" fill="#ffd166" filter="url(#softGlow)"/>
+  <text x="115" y="193" font-size="22" font-weight="700" fill="#3a2405" text-anchor="middle">G</text>
+  <text x="115" y="235" font-size="12" fill="#ffd166" text-anchor="middle">-10</text>
+  <g transform="translate(210,190)" filter="url(#softGlow)">
+    <circle cx="0" cy="0" r="34" fill="#ff8fb8"/>
+    <circle cx="-13" cy="-8" r="4" fill="#2a1524"/>
+    <circle cx="13" cy="-8" r="4" fill="#2a1524"/>
+    <path d="M-8,10 Q0,18 8,10" stroke="#2a1524" stroke-width="2" fill="none"/>
+    <path d="M-34,-14 L-14,-4" stroke="#ff8fb8" stroke-width="6"/>
+    <path d="M34,-14 L14,-4" stroke="#ff8fb8" stroke-width="6"/>
+  </g>
+  <text x="160" y="332" font-size="13" fill="#e7b8cc" text-anchor="middle">HUMOROUS BONUS PAYOFF EVENT</text>
+  <text x="18" y="372" font-size="13" fill="#b9a4c4">
+    <tspan x="18" dy="0">Stunned enemy pays gold. A cat</tspan>
+    <tspan x="18" dy="19">delivers a treat and licks the</tspan>
+    <tspan x="18" dy="19">owner — a comic consequence /</tspan>
+    <tspan x="18" dy="19">bonus beat.</tspan>
+  </text>
+  <text x="18" y="548" font-size="12" fill="#6d5d78">EconomyComponent + AttachmentComponent</text>
+</g>
+
+<!-- ================= C. TECHNICAL BREAKDOWN ROW 1 ================= -->
+<text x="120" y="845" font-size="22" fill="#ff8fb8" letter-spacing="3">02 — TECHNICAL BREAKDOWN</text>
+
+<!-- FX LAYER BREAKDOWN -->
+<g transform="translate(120,880)">
+  <rect width="820" height="520" rx="10" fill="#120a19" stroke="#3a2340" stroke-width="2"/>
+  <text x="24" y="40" font-size="19" fill="#ff5290" letter-spacing="2">FX LAYER BREAKDOWN</text>
+  <line x1="24" y1="54" x2="796" y2="54" stroke="#2a1a35"/>
+  <g font-size="15" fill="#e7dbe9">
+    <g transform="translate(24,86)"><rect width="18" height="18" rx="4" fill="#ff5290"/><text x="34" y="14">Aura Layer</text><text x="300" y="14" fill="#7a6a86" font-size="12">soft glow volume, follows character, fade in/out</text></g>
+    <g transform="translate(24,126)"><rect width="18" height="18" rx="4" fill="#ff1557"/><text x="34" y="14">Shell Layer</text><text x="300" y="14" fill="#7a6a86" font-size="12">procedural spiral symbol above caster</text></g>
+    <g transform="translate(24,166)"><rect width="18" height="18" rx="4" fill="#ff2d78"/><text x="34" y="14">Procedural Paw Spawn Layer</text><text x="380" y="14" fill="#7a6a86" font-size="12">SDF paw mesh/material, no sprite sheet</text></g>
+    <g transform="translate(24,206)"><rect width="18" height="18" rx="4" fill="#ff6fae"/><text x="34" y="14">Dash Trail Layer</text><text x="300" y="14" fill="#7a6a86" font-size="12">ribbon trail + directional energy streaks</text></g>
+    <g transform="translate(24,246)"><rect width="18" height="18" rx="4" fill="#ffd166"/><text x="34" y="14">Hit Impact Layer</text><text x="300" y="14" fill="#7a6a86" font-size="12">burst + spark on collision event</text></g>
+    <g transform="translate(24,286)"><rect width="18" height="18" rx="4" fill="#ffb347"/><text x="34" y="14">Stun Layer</text><text x="300" y="14" fill="#7a6a86" font-size="12">status ring + icon readout on enemy</text></g>
+    <g transform="translate(24,326)"><rect width="18" height="18" rx="4" fill="#ff8fb8"/><text x="34" y="14">Gold + Cat Event Layer</text><text x="360" y="14" fill="#7a6a86" font-size="12">coin sparkle, treat pickup, lick sparkle</text></g>
+  </g>
+  <text x="24" y="480" font-size="12" fill="#6d5d78">NS_CatAura / NS_CatPawProjectile / NS_CatPawImpact / NS_EnemyStun</text>
+</g>
+
+<!-- NIAGARA SYSTEM OVERVIEW (flow) -->
+<g transform="translate(980,880)">
+  <rect width="820" height="520" rx="10" fill="#120a19" stroke="#3a2340" stroke-width="2"/>
+  <text x="24" y="40" font-size="19" fill="#ff5290" letter-spacing="2">NIAGARA SYSTEM OVERVIEW</text>
+  <line x1="24" y1="54" x2="796" y2="54" stroke="#2a1a35"/>
+  <g font-size="14" fill="#f0e6f2">
+    <g transform="translate(210,78)"><rect width="400" height="42" rx="8" fill="#22102a" stroke="#ff5290" stroke-width="1.5"/><text x="200" y="27" text-anchor="middle">User Input (Press E)</text></g>
+    <line x1="410" y1="120" x2="410" y2="134" stroke="#ff6fae" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(210,136)"><rect width="400" height="42" rx="8" fill="#22102a" stroke="#ff5290" stroke-width="1.5"/><text x="200" y="27" text-anchor="middle">Activate Aura</text></g>
+    <line x1="410" y1="178" x2="410" y2="192" stroke="#ff6fae" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(210,194)"><rect width="400" height="42" rx="8" fill="#22102a" stroke="#ff5290" stroke-width="1.5"/><text x="200" y="27" text-anchor="middle">Spawn Paw Shapes</text></g>
+    <line x1="410" y1="236" x2="410" y2="250" stroke="#ff6fae" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(210,252)"><rect width="400" height="42" rx="8" fill="#22102a" stroke="#ff5290" stroke-width="1.5"/><text x="200" y="27" text-anchor="middle">Update Motion / Dash</text></g>
+    <line x1="410" y1="294" x2="410" y2="308" stroke="#ff6fae" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(210,310)"><rect width="400" height="42" rx="8" fill="#22102a" stroke="#ff5290" stroke-width="1.5"/><text x="200" y="27" text-anchor="middle">Collision / Hit Event</text></g>
+    <line x1="410" y1="352" x2="410" y2="366" stroke="#ff6fae" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(210,368)"><rect width="400" height="42" rx="8" fill="#22102a" stroke="#ff5290" stroke-width="1.5"/><text x="200" y="27" text-anchor="middle">Apply Stun</text></g>
+    <line x1="410" y1="410" x2="410" y2="424" stroke="#ff6fae" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(210,426)"><rect width="400" height="42" rx="8" fill="#22102a" stroke="#ffd166" stroke-width="1.5"/><text x="200" y="27" text-anchor="middle">Spawn Gold / Trigger Cat Event</text></g>
+  </g>
+</g>
+
+<!-- ================= D. TECHNICAL BREAKDOWN ROW 2 ================= -->
+<!-- SHADER / MATERIAL MATH -->
+<g transform="translate(120,1480)">
+  <rect width="820" height="560" rx="10" fill="#120a19" stroke="#3a2340" stroke-width="2"/>
+  <text x="24" y="40" font-size="19" fill="#ff5290" letter-spacing="2">SHADER / MATERIAL MATH BREAKDOWN</text>
+  <text x="24" y="60" font-size="12" fill="#7a6a86">Procedural SDF — no texture sprite sheet for the paw shape</text>
+  <line x1="24" y1="72" x2="796" y2="72" stroke="#2a1a35"/>
+
+  <g font-size="13" fill="#f0e6f2">
+    <!-- step 1 UV -->
+    <g transform="translate(24,96)">
+      <rect width="360" height="66" rx="8" fill="#22102a" stroke="#ff5290" stroke-width="1.5"/>
+      <g transform="translate(16,14)">
+        <rect width="36" height="36" fill="none" stroke="#ff8fb8" stroke-width="1"/>
+        <line x1="12" y1="0" x2="12" y2="36" stroke="#ff8fb8" stroke-width="0.7"/>
+        <line x1="24" y1="0" x2="24" y2="36" stroke="#ff8fb8" stroke-width="0.7"/>
+        <line x1="0" y1="12" x2="36" y2="12" stroke="#ff8fb8" stroke-width="0.7"/>
+        <line x1="0" y1="24" x2="36" y2="24" stroke="#ff8fb8" stroke-width="0.7"/>
+      </g>
+      <text x="70" y="28" font-weight="700">UV</text>
+      <text x="70" y="48" font-size="11" fill="#a98cb4">normalized 0–1 quad space</text>
+    </g>
+    <line x1="384" y1="129" x2="404" y2="129" stroke="#ff6fae" stroke-width="2" marker-end="url(#arrow)"/>
+    <!-- step 2 theta -->
+    <g transform="translate(410,96)">
+      <rect width="386" height="66" rx="8" fill="#22102a" stroke="#ff5290" stroke-width="1.5"/>
+      <g transform="translate(28,32)">
+        <circle r="20" fill="none" stroke="#ff8fb8" stroke-width="1"/>
+        <path d="M20,0 A20,20 0 0,1 6,19" fill="none" stroke="#ffd166" stroke-width="2"/>
+        <line x1="0" y1="0" x2="20" y2="0" stroke="#ff8fb8" stroke-width="1"/>
+        <line x1="0" y1="0" x2="6" y2="19" stroke="#ff8fb8" stroke-width="1"/>
+      </g>
+      <text x="70" y="24">theta = atan2(uv.y-.5,</text>
+      <text x="70" y="40">uv.x-.5) — polar angle</text>
+    </g>
+    <!-- step 3 radius -->
+    <line x1="204" y1="162" x2="204" y2="182" stroke="#ff6fae" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(24,184)">
+      <rect width="360" height="66" rx="8" fill="#22102a" stroke="#ff5290" stroke-width="1.5"/>
+      <g transform="translate(28,32)">
+        <line x1="0" y1="0" x2="20" y2="-8" stroke="#ffd166" stroke-width="2"/>
+        <circle r="3" fill="#ff8fb8"/>
+        <circle r="20" fill="none" stroke="#ff8fb8" stroke-width="1" stroke-dasharray="3 3"/>
+      </g>
+      <text x="70" y="24">radius = length(uv -</text>
+      <text x="70" y="40">center) — distance field basis</text>
+    </g>
+    <line x1="384" y1="217" x2="404" y2="217" stroke="#ff6fae" stroke-width="2" marker-end="url(#arrow)"/>
+    <!-- step 4 sdf union -->
+    <g transform="translate(410,184)">
+      <rect width="386" height="66" rx="8" fill="#22102a" stroke="#ff5290" stroke-width="1.5"/>
+      <g transform="translate(28,32)" opacity="0.9">
+        <ellipse cx="0" cy="8" rx="16" ry="13" fill="#ff2d78"/>
+        <circle cx="-18" cy="-8" r="7" fill="#ff5290"/>
+        <circle cx="-7" cy="-16" r="7.5" fill="#ff5290"/>
+        <circle cx="7" cy="-16" r="7.5" fill="#ff5290"/>
+        <circle cx="18" cy="-8" r="7" fill="#ff5290"/>
+      </g>
+      <text x="70" y="24">SDF(pad) smoothUnion</text>
+      <text x="70" y="40" font-size="11" fill="#a98cb4">SDF(toe×4) — MF_SmoothUnion</text>
+    </g>
+    <!-- step 5 mask -->
+    <line x1="204" y1="250" x2="204" y2="270" stroke="#ff6fae" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(24,272)">
+      <rect width="360" height="66" rx="8" fill="#22102a" stroke="#ff5290" stroke-width="1.5"/>
+      <g transform="translate(16,10)" filter="url(#softGlow)">
+        <ellipse cx="30" cy="28" rx="16" ry="13" fill="#ffffff" opacity="0.9"/>
+        <circle cx="12" cy="12" r="7" fill="#ffffff" opacity="0.9"/>
+        <circle cx="23" cy="4" r="7.5" fill="#ffffff" opacity="0.9"/>
+        <circle cx="37" cy="4" r="7.5" fill="#ffffff" opacity="0.9"/>
+        <circle cx="48" cy="12" r="7" fill="#ffffff" opacity="0.9"/>
+      </g>
+      <text x="70" y="24">Paw Mask</text>
+      <text x="70" y="40" font-size="11" fill="#a98cb4">step(sdf, edge) → 0/1 mask</text>
+    </g>
+    <line x1="384" y1="305" x2="404" y2="305" stroke="#ff6fae" stroke-width="2" marker-end="url(#arrow)"/>
+    <!-- step 6 emissive/opacity -->
+    <g transform="translate(410,272)">
+      <rect width="386" height="66" rx="8" fill="#22102a" stroke="#ffd166" stroke-width="1.5"/>
+      <g transform="translate(16,10)" filter="url(#softGlow)">
+        <ellipse cx="30" cy="28" rx="16" ry="13" fill="#ff2d78"/>
+        <circle cx="12" cy="12" r="7" fill="#ff5290"/>
+        <circle cx="23" cy="4" r="7.5" fill="#ff5290"/>
+        <circle cx="37" cy="4" r="7.5" fill="#ff5290"/>
+        <circle cx="48" cy="12" r="7" fill="#ff5290"/>
+      </g>
+      <text x="70" y="24">mask × color × glow</text>
+      <text x="70" y="40" font-size="11" fill="#a98cb4">→ Emissive · mask → Opacity</text>
+    </g>
+  </g>
+
+  <line x1="24" y1="360" x2="796" y2="360" stroke="#2a1a35"/>
+  <text x="24" y="392" font-size="14" fill="#ff8fb8">RESULT: 100% math-driven emissive shape — zero texture atlas, zero sprite frames.</text>
+  <text x="24" y="420" font-size="13" fill="#b9a4c4">
+    <tspan x="24" dy="0">Functions live in Material Functions (MF_SDFCircle,</tspan>
+    <tspan x="24" dy="20">MF_SDFEllipse, MF_SmoothUnion, MF_PawShape, MF_ShellSpiral)</tspan>
+    <tspan x="24" dy="20">so the same math library drives the paw, the shell symbol,</tspan>
+    <tspan x="24" dy="20">and any future swapped shape. Swapping ShapeType re-routes</tspan>
+    <tspan x="24" dy="20">which SDF chain is evaluated — not a different texture.</tspan>
+  </text>
+</g>
+
+<!-- SHAPE SLOT / SWAPPABLE SHAPE PANEL -->
+<g transform="translate(980,1480)">
+  <rect width="820" height="560" rx="10" fill="#120a19" stroke="#3a2340" stroke-width="2"/>
+  <text x="24" y="40" font-size="19" fill="#ff5290" letter-spacing="2">SHAPE SLOT — SWAPPABLE SHAPE SYSTEM</text>
+  <text x="24" y="60" font-size="12" fill="#7a6a86">User.ShapeType (Niagara User Parameter) / ShapeMode (Material Parameter)</text>
+  <line x1="24" y1="72" x2="796" y2="72" stroke="#2a1a35"/>
+
+  <g font-size="13" fill="#e7dbe9">
+    <!-- row 1 -->
+    <g transform="translate(40,100)">
+      <rect width="220" height="150" rx="10" fill="#22102a" stroke="#ff2d78" stroke-width="3" filter="url(#softGlow)"/>
+      <text x="14" y="26" font-size="12" fill="#ffd166">INDEX 0 — ACTIVE</text>
+      <g transform="translate(110,90)" filter="url(#softGlow)">
+        <ellipse cx="0" cy="12" rx="26" ry="21" fill="#ff2d78"/>
+        <circle cx="-28" cy="-14" r="11" fill="#ff5290"/>
+        <circle cx="-11" cy="-26" r="12" fill="#ff5290"/>
+        <circle cx="11" cy="-26" r="12" fill="#ff5290"/>
+        <circle cx="28" cy="-14" r="11" fill="#ff5290"/>
+      </g>
+      <text x="110" y="140" text-anchor="middle" font-size="13">PAW</text>
+    </g>
+    <g transform="translate(290,100)">
+      <rect width="220" height="150" rx="10" fill="#1a0f22" stroke="#3a2340" stroke-width="2"/>
+      <text x="14" y="26" font-size="12" fill="#7a6a86">INDEX 1</text>
+      <path transform="translate(110,86)" d="M0,20 C-30,-8 -30,-34 0,-14 C30,-34 30,-8 0,20 Z" fill="#ff5290" opacity="0.85"/>
+      <text x="110" y="140" text-anchor="middle" font-size="13">HEART</text>
+    </g>
+    <g transform="translate(540,100)">
+      <rect width="220" height="150" rx="10" fill="#1a0f22" stroke="#3a2340" stroke-width="2"/>
+      <text x="14" y="26" font-size="12" fill="#7a6a86">INDEX 2</text>
+      <path transform="translate(110,84)" d="M0,-32 L9,-10 L33,-10 L13,5 L21,29 L0,15 L-21,29 L-13,5 L-33,-10 L-9,-10 Z" fill="#ff5290" opacity="0.85"/>
+      <text x="110" y="140" text-anchor="middle" font-size="13">STAR</text>
+    </g>
+    <!-- row 2 -->
+    <g transform="translate(40,270)">
+      <rect width="220" height="150" rx="10" fill="#1a0f22" stroke="#3a2340" stroke-width="2"/>
+      <text x="14" y="26" font-size="12" fill="#7a6a86">INDEX 3</text>
+      <polyline points="0.0,0.0 0.3,0.0 0.7,0.1 0.9,0.3 1.2,0.6 1.4,0.9 1.6,1.2 1.7,1.6 1.7,2.1 1.6,2.5 1.5,3.0 1.2,3.5 0.9,3.9 0.5,4.3 0.0,4.7 -0.5,5.0 -1.1,5.2 -1.8,5.4 -2.6,5.4 -3.3,5.4 -4.1,5.3 -4.9,5.0 -5.7,4.6 -6.4,4.2 -7.2,3.6 -7.8,2.9 -8.4,2.0 -8.9,1.1 -9.3,0.1 -9.6,-0.9 -9.8,-2.1 -9.8,-3.3 -9.7,-4.5 -9.4,-5.7 -9.0,-6.9 -8.4,-8.1 -7.6,-9.2 -6.8,-10.3 -5.7,-11.3 -4.5,-12.2 -3.2,-12.9 -1.8,-13.5 -0.3,-14.0 1.3,-14.3 2.9,-14.4 4.6,-14.3 6.3,-14.0 8.0,-13.5 9.7,-12.7 11.3,-11.8 12.8,-10.7 14.2,-9.4 15.4,-7.9 16.5,-6.3 17.4,-4.5 18.2,-2.6 18.7,-0.5 18.9,1.6 19.0,3.8 18.7,5.9 18.3,8.1 17.5,10.3"
+        fill="none" stroke="#ff5290" stroke-width="3" stroke-linecap="round" transform="translate(110,80)"/>
+      <text x="110" y="140" text-anchor="middle" font-size="13">SHELL</text>
+    </g>
+    <g transform="translate(290,270)">
+      <rect width="220" height="150" rx="10" fill="#1a0f22" stroke="#3a2340" stroke-width="2"/>
+      <text x="14" y="26" font-size="12" fill="#7a6a86">INDEX 4</text>
+      <path transform="translate(110,90)" d="M-30,0 C-14,-20 14,-20 30,0 C14,4 6,-6 0,0 C6,6 14,-4 30,0 C14,20 -14,20 -30,0 Z" fill="#ff5290" opacity="0.85"/>
+      <text x="110" y="140" text-anchor="middle" font-size="13">FISH</text>
+    </g>
+    <g transform="translate(540,270)">
+      <rect width="220" height="150" rx="10" fill="#1a0f22" stroke="#3a2340" stroke-width="2"/>
+      <text x="14" y="26" font-size="12" fill="#7a6a86">INDEX 5</text>
+      <polyline points="0.0,0.0 0.4,0.0 0.7,0.2 1.1,0.4 1.4,0.7 1.6,1.0 1.8,1.4 1.9,1.9 1.9,2.4 1.8,2.9 1.7,3.4 1.4,3.9 1.0,4.4 0.6,4.9 0.0,5.3 -0.6,5.6 -1.3,5.9 -2.1,6.1 -2.9,6.2 -3.8,6.1 -4.7,6.0 -5.6,5.7 -6.4,5.3 -7.3,4.7 -8.1,4.0 -8.9,3.2 -9.5,2.3 -10.1,1.3 -10.6,0.1 -10.9,-1.1 -11.1,-2.4 -11.1,-3.7 -11.0,-5.1 -10.7,-6.5 -10.2,-7.8 -9.5,-9.2 -8.7,-10.5 -7.7,-11.7 -6.5,-12.8 -5.1,-13.8 -3.7,-14.7 -2.0,-15.4 -0.3,-15.9 1.5,-16.2 3.3,-16.3 5.3,-16.2 7.2,-15.8 9.1,-15.3 11.0,-14.4 12.8,-13.4 14.5,-12.1 16.0,-10.7 17.5,-9.0 18.7,-7.1 19.8,-5.1 20.6,-2.9 21.1,-0.6 21.5,1.8"
+        fill="none" stroke="#ff5290" stroke-width="3" stroke-linecap="round" transform="translate(105,84)"/>
+      <text x="110" y="140" text-anchor="middle" font-size="13">SPIRAL</text>
+    </g>
+  </g>
+
+  <line x1="24" y1="440" x2="796" y2="440" stroke="#2a1a35"/>
+  <text x="24" y="470" font-size="13" fill="#b9a4c4">
+    <tspan x="24" dy="0">One material graph, one integer switch. Designers swap</tspan>
+    <tspan x="24" dy="20">the projectile symbol at runtime without touching Niagara</tspan>
+    <tspan x="24" dy="20">emitters or requesting new sprite art — proof the system</tspan>
+    <tspan x="24" dy="20">is modular and reusable across future skills.</tspan>
+  </text>
+</g>
+
+<!-- ================= FOOTER ================= -->
+<line x1="120" y1="2090" x2="1800" y2="2090" stroke="#ff2d78" stroke-width="2" opacity="0.5"/>
+<text x="120" y="2124" font-size="14" fill="#7a6a86">UNREAL ENGINE 5 · NIAGARA · PROCEDURAL SDF MATERIAL · C++ / BLUEPRINT HYBRID ARCHITECTURE</text>
+<text x="1800" y="2124" font-size="14" fill="#7a6a86" text-anchor="end">REALTIME GAMEPLAY VFX — NOT A MARKETING POSTER</text>
+<text x="120" y="2154" font-size="12" fill="#4a3a54">Build script ref: CatAura_SafeBuild.py (NS_CatAura duplication + M_CatAura_Master + MI_ instances)</text>
+</svg>

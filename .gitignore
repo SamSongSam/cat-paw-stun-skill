@@ -1,0 +1,21 @@
+# --- Unreal Engine (once this Source/ is copied into a real .uproject) ---
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vs/
+*.sln
+*.VC.db
+*.opensdf
+*.sdf
+*.opendb
+*.vsconfig
+
+# --- OS / editor junk ---
+.DS_Store
+Thumbs.db
+*.swp
+
+# --- excluded: unrelated to this project, not reviewed for public push ---
+Diamofox BRI ny12.jpg
