@@ -12,9 +12,11 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "GameplayEffectTypes.h"
 #include "CatSkillData.generated.h"
 
 class UNiagaraSystem;
+class ACatPawProjectile;
 
 /**
  * Data-only description of a cat skill. Deliberately holds only what Phase 1-2 (input -> aura)
@@ -40,4 +42,25 @@ public:
 	// Socket on the owning mesh the aura attaches to; NAME_None attaches to the component root.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|VFX")
 	FName AuraAttachSocketName = NAME_None;
+
+	// Phase 3 — target detection radius (CatSkillComponent::FindTarget sphere overlap).
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Targeting", meta = (ClampMin = "0.0", Units = "cm"))
+	float Range = 800.0f;
+
+	// Phase 4 — what CatSkillComponent::SpawnProjectile spawns and how fast it moves.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Projectile")
+	TSubclassOf<ACatPawProjectile> ProjectileClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Projectile", meta = (ClampMin = "0.0", Units = "cm/s"))
+	float ProjectileSpeed = 2000.0f;
+
+	// Phase 5 — VFX spawned where the projectile hits; the projectile itself
+	// never hardcodes this (Golden Rule: FX -> Niagara, referenced as data).
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|VFX")
+	TObjectPtr<UNiagaraSystem> ImpactSystem;
+
+	// Phases 6-8 — what CatSkillComponent::ApplySkillEffects sends to whatever
+	// the projectile hits. See CatSkill_test.md section 7 for the field meanings.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Effects")
+	TArray<FGameplayEffectSpec> Effects;
 };

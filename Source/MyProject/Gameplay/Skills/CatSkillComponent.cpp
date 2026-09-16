@@ -12,6 +12,21 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
+#include "EffectReceiverComponent.h"
+#include "CatPawProjectile.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Engine/Engine.h"
+#include "DrawDebugHelpers.h"
+
+// Temporary debug helper — see CatPlayerCharacter.cpp for the matching one.
+// Remove once Phase 1-2 input is confirmed working end to end.
+static void CatSkillDebugMessage(const FString& Message, FColor Color = FColor::Yellow)
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 6.0f, Color, TEXT("[CatSkillDebug] ") + Message);
+	}
+}
 
 UCatSkillComponent::UCatSkillComponent()
 {
@@ -59,8 +74,25 @@ bool UCatSkillComponent::CanActivateSkill() const
 
 void UCatSkillComponent::ActivateCatSkill()
 {
+	CatSkillDebugMessage(TEXT("ActivateCatSkill called."), FColor::Cyan);
+
 	if (!CanActivateSkill())
 	{
+		FString Reason = TEXT("unknown");
+		if (!IsValid(SkillData))
+		{
+			Reason = TEXT("SkillData is invalid");
+		}
+		else if (bIsSkillActive)
+		{
+			Reason = TEXT("skill already active");
+		}
+		else if (const UWorld* World = GetWorld())
+		{
+			Reason = FString::Printf(TEXT("cooldown not elapsed (%.2fs remaining)"),
+				SkillData->Cooldown - (World->GetTimeSeconds() - LastCastTime));
+		}
+		CatSkillDebugMessage(FString::Printf(TEXT("CanActivateSkill() = false (%s)."), *Reason), FColor::Red);
 		return;
 	}
 
@@ -77,11 +109,148 @@ void UCatSkillComponent::ActivateCatSkill()
 
 	OnCatSkillActivated();
 
-	// Phase 1-2 scope ends here: no target detection / projectile / effects yet, so the skill
-	// instance is considered "finished" the moment the aura is up. Later phases will move this
-	// call to after the full sequence (hit -> stun -> gold -> deliver -> lick) completes.
+	// From here the caster's own job is done — the projectile (once spawned)
+	// carries the effects and resolves hit/stun/gold/deliver/lick on its own
+	// timeline (sections 9-20). The skill component does not track that
+	// downstream chain; it only owns cast/cooldown state (Golden Rule: this
+	// component is Gameplay/state, not AI/animation).
+	AActor* Target = FindTarget();
+
+	if (bDebugSkill && IsValid(SkillData))
+	{
+		DrawDebugSphere(World, GetOwner()->GetActorLocation(), SkillData->Range, 24,
+			FColor::Yellow, false, 2.0f, 0, 2.0f);
+		if (IsValid(Target))
+		{
+			DrawDebugSphere(World, Target->GetActorLocation(), 40.0f, 12,
+				FColor::Red, false, 2.0f, 0, 3.0f);
+			DrawDebugString(World, Target->GetActorLocation() + FVector(0, 0, 100),
+				FString::Printf(TEXT("TARGET: %s"), *Target->GetName()), nullptr, FColor::Red, 2.0f);
+		}
+	}
+
+	if (IsValid(Target))
+	{
+		OnTargetAcquired(Target);
+		SpawnProjectile(Target);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("[CatSkill] %s: no target found within range — aura only, no projectile."),
+			*GetOwner()->GetName());
+	}
+
 	bIsSkillActive = false;
 	OnSkillFinished();
+}
+
+AActor* UCatSkillComponent::FindTarget() const
+{
+	AActor* Owner = GetOwner();
+	if (!IsValid(Owner) || !IsValid(SkillData))
+	{
+		return nullptr;
+	}
+
+	TArray<AActor*> ActorsToIgnore = {Owner};
+	TArray<AActor*> OverlappingActors;
+
+	UKismetSystemLibrary::SphereOverlapActors(
+		this,
+		Owner->GetActorLocation(),
+		SkillData->Range,
+		TArray<TEnumAsByte<EObjectTypeQuery>>{UEngineTypes::ConvertToObjectType(ECC_Pawn)},
+		nullptr,
+		ActorsToIgnore,
+		OverlappingActors);
+
+	AActor* ClosestTarget = nullptr;
+	float ClosestDistSq = FLT_MAX;
+	const FVector OwnerLocation = Owner->GetActorLocation();
+
+	for (AActor* Candidate : OverlappingActors)
+	{
+		if (!IsValid(Candidate))
+		{
+			continue;
+		}
+
+		// Section 29: filter by "Has EffectReceiverComponent", never by class.
+		if (!IsValid(Candidate->FindComponentByClass<UEffectReceiverComponent>()))
+		{
+			continue;
+		}
+
+		const float DistSq = FVector::DistSquared(OwnerLocation, Candidate->GetActorLocation());
+		if (DistSq < ClosestDistSq)
+		{
+			ClosestDistSq = DistSq;
+			ClosestTarget = Candidate;
+		}
+	}
+
+	return ClosestTarget;
+}
+
+void UCatSkillComponent::SpawnProjectile(AActor* TargetActor)
+{
+	AActor* Owner = GetOwner();
+	if (!IsValid(Owner) || !IsValid(SkillData))
+	{
+		return;
+	}
+
+	if (!IsValid(SkillData->ProjectileClass))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[CatSkill] SpawnProjectile skipped — SkillData->ProjectileClass "
+			"unset on %s."), *Owner->GetName());
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		return;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = Owner;
+	SpawnParams.Instigator = Cast<APawn>(Owner);
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	const FVector SpawnLocation = Owner->GetActorLocation();
+	const FRotator SpawnRotation = IsValid(TargetActor)
+		? (TargetActor->GetActorLocation() - SpawnLocation).Rotation()
+		: Owner->GetActorRotation();
+
+	ACatPawProjectile* Projectile = World->SpawnActor<ACatPawProjectile>(
+		SkillData->ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
+
+	if (!IsValid(Projectile))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[CatSkill] Failed to spawn projectile for %s."), *Owner->GetName());
+		return;
+	}
+
+	Projectile->InitializeProjectile(TargetActor, BuildEffectSpecs(TargetActor));
+	OnProjectileSpawned(Projectile);
+}
+
+TArray<FGameplayEffectSpec> UCatSkillComponent::BuildEffectSpecs(AActor* TargetActor) const
+{
+	TArray<FGameplayEffectSpec> Specs;
+	if (!IsValid(SkillData))
+	{
+		return Specs;
+	}
+
+	Specs = SkillData->Effects;
+	for (FGameplayEffectSpec& Spec : Specs)
+	{
+		Spec.Source = GetOwner();
+		Spec.Target = TargetActor;
+	}
+	return Specs;
 }
 
 void UCatSkillComponent::SpawnAura()

@@ -14,10 +14,12 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameplayEffectTypes.h"
 #include "CatSkillComponent.generated.h"
 
 class UCatSkillData;
 class UNiagaraComponent;
+class ACatPawProjectile;
 
 /**
  * Runtime driver for one cat skill instance. C++ owns state/validation/spawning (gameplay);
@@ -47,8 +49,29 @@ protected:
 	// crash-prevention checklist: always IsValid() a UPROPERTY asset reference before use).
 	void SpawnAura();
 
+	// Phase 3: sphere overlap within SkillData->Range, filtered to actors that
+	// have an EffectReceiverComponent (section 29 — never a specific enemy
+	// class), then picks the closest one (section 30).
+	AActor* FindTarget() const;
+
+	// Phase 4: spawns SkillData->ProjectileClass and hands it TargetActor +
+	// SkillData->Effects. No-op (with a warning) if ProjectileClass is unset.
+	void SpawnProjectile(AActor* TargetActor);
+
+	// Phase 6-8: builds one FGameplayEffectSpec per entry in SkillData->Effects
+	// (Source/Target filled in here) and forwards it to the projectile — the
+	// projectile applies them on hit, this component never touches the
+	// target's components directly (Golden Rule: skill doesn't know enemy).
+	TArray<FGameplayEffectSpec> BuildEffectSpecs(AActor* TargetActor) const;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cat Skill")
 	TObjectPtr<UCatSkillData> SkillData;
+
+	// Section 36 — Debug Mode. Draws SkillData->Range as a sphere and the
+	// found target (if any) on every ActivateCatSkill call. Never affects
+	// gameplay logic, only DrawDebug* calls.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cat Skill|Debug")
+	bool bDebugSkill = false;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Cat Skill")
 	bool bIsSkillActive = false;
@@ -63,6 +86,12 @@ protected:
 	// Blueprint hooks for presentation (animation, sound, camera) — C++ never plays those itself.
 	UFUNCTION(BlueprintImplementableEvent, Category = "Cat Skill")
 	void OnCatSkillActivated();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Cat Skill")
+	void OnTargetAcquired(AActor* Target);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Cat Skill")
+	void OnProjectileSpawned(ACatPawProjectile* Projectile);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Cat Skill")
 	void OnSkillFinished();

@@ -31,9 +31,9 @@ import unreal
 # CONFIG — adjust paths to match your project
 # ============================================================
 
-INPUT_DIR = "/Game/Input"
-DATA_DIR = "/Game/Data/Skills"
-CHAR_DIR = "/Game/Blueprints/Characters"
+INPUT_DIR = "/Game/CatSkill/Input"
+DATA_DIR = "/Game/CatSkill"
+CHAR_DIR = "/Game/CatSkill"
 
 IMC_NAME = "IMC_Default"
 IA_NAME = "IA_CatSkill"
@@ -41,7 +41,7 @@ SKILL_DATA_NAME = "DA_CatPawSkill"
 PLAYER_BP_NAME = "BP_PlayerCatSkill"
 
 # Path to the Niagara System built by CatAura_SafeBuild.py
-NS_CAT_AURA_PATH = "/Game/VFX/CatSkill/Systems/NS_CatAura"
+NS_CAT_AURA_PATH = "/Game/CatSkill/NS_CatAura"
 
 # Name of the C++ classes as they appear to Python. If your module name
 # is not "MyProject" the class still exposes under its own class name
@@ -178,7 +178,14 @@ def create_mapping_context(input_action):
 
     if input_action is not None:
         try:
-            imc.map_key(input_action, unreal.Key("E"))
+            # imc.map_key(...) is broken in this engine build (raises "call()
+            # takes at most 0 arguments") — append to the mappings array directly.
+            mappings = list(imc.get_editor_property("mappings"))
+            new_mapping = unreal.EnhancedActionKeyMapping()
+            new_mapping.set_editor_property("action", input_action)
+            new_mapping.set_editor_property("key", unreal.Key(key_name="E"))
+            mappings.append(new_mapping)
+            imc.set_editor_property("mappings", mappings)
             log(f"Mapped {IA_NAME} -> E inside {IMC_NAME}.")
         except Exception as exc:
             warn(f"Could not auto-map E key: {exc} — map it manually in {IMC_NAME}.")
