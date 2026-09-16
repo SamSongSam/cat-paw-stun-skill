@@ -5,9 +5,13 @@
 //          (Phase 4/5); the procedural SDF paw material (Phase 12) replaces
 //          only the Niagara/Material look, this actor's gameplay does not
 //          change. Homes toward TargetActor, sends EffectSpecs to whatever
-//          it hits, then destroys itself.
+//          it hits, then destroys itself. Also pushes the Dynamic FX
+//          parameter contract (NEXT.md sections 4-5, 10) onto its own trail
+//          NiagaraComponent at cast time and onto ImpactSystem at hit time.
 // Depends on: UEffectReceiverComponent (target must have one to receive
-//             EffectSpecs), FGameplayEffectSpec (GameplayEffectTypes.h)
+//             EffectSpecs), FGameplayEffectSpec (GameplayEffectTypes.h),
+//             UStatusComponent (reads target's StunStack for impact FX),
+//             CatFXParamNames.h (shared Niagara User Parameter names)
 // Consumed by: UCatSkillComponent::SpawnProjectile()
 // Exposed params: Speed, HomingAcceleration — EditDefaultsOnly on
 //                 BP_PawProjectile so VFX/gameplay can tune dash feel
@@ -45,6 +49,17 @@ protected:
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
 		FVector NormalImpulse, const FHitResult& Hit);
+
+	// Pushes TargetPosition/DistanceToTarget/AttackVelocity onto NiagaraComponent. Called once from
+	// InitializeProjectile since distance/velocity are fixed at cast time (NEXT.md section 5) —
+	// this is not a Tick function, the paw does not need to re-evaluate distance mid-flight.
+	void UpdateDynamicMotionParameters();
+
+	// Spawns ImpactSystem with HitLocation/HitNormal/StunStack/FXIntensity pre-set as User
+	// Parameters. Niagara only reads initial User Parameter values at spawn, so this cannot use
+	// the plain SpawnSystemAtLocation-then-set-later pattern — spawn deferred (bAutoActivate=false),
+	// set params, then Activate().
+	void SpawnImpactFX(const FHitResult& Hit, int32 HitStunStack) const;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Cat Paw Projectile")
 	TObjectPtr<USphereComponent> CollisionComponent;

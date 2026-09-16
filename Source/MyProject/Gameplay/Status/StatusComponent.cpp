@@ -21,6 +21,17 @@ UStatusComponent::UStatusComponent()
 
 void UStatusComponent::ApplyStun(float Duration)
 {
+	if (StunStack < MaxStunStack)
+	{
+		++StunStack;
+		OnStunStackChanged(StunStack);
+
+		if (StunStack == MaxStunStack)
+		{
+			OnStunStackMaxed();
+		}
+	}
+
 	if (bIsStunned)
 	{
 		return;
@@ -59,4 +70,10 @@ void UStatusComponent::RemoveStun()
 	}
 
 	OnStunEnded();
+}
+
+void UStatusComponent::ResetStunStack()
+{
+	StunStack = 0;
+	OnStunStackChanged(StunStack);
 }

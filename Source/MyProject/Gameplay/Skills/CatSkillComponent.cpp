@@ -13,6 +13,8 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "EffectReceiverComponent.h"
+#include "StatusComponent.h"
+#include "CatFXParamNames.h"
 #include "CatPawProjectile.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/Engine.h"
@@ -105,7 +107,12 @@ void UCatSkillComponent::ActivateCatSkill()
 	bIsSkillActive = true;
 	LastCastTime = World->GetTimeSeconds();
 
-	SpawnAura();
+	// Found before SpawnAura (not after, like earlier phases) so the aura's Niagara params can
+	// reflect the current target's StunStack on spawn (NEXT.md section 7) — finding the target
+	// doesn't depend on the aura existing, so this ordering is free.
+	AActor* Target = FindTarget();
+
+	SpawnAura(Target);
 
 	OnCatSkillActivated();
 
@@ -114,7 +121,6 @@ void UCatSkillComponent::ActivateCatSkill()
 	// timeline (sections 9-20). The skill component does not track that
 	// downstream chain; it only owns cast/cooldown state (Golden Rule: this
 	// component is Gameplay/state, not AI/animation).
-	AActor* Target = FindTarget();
 
 	if (bDebugSkill && IsValid(SkillData))
 	{
@@ -253,7 +259,7 @@ TArray<FGameplayEffectSpec> UCatSkillComponent::BuildEffectSpecs(AActor* TargetA
 	return Specs;
 }
 
-void UCatSkillComponent::SpawnAura()
+void UCatSkillComponent::SpawnAura(AActor* TargetActor)
 {
 	AActor* Owner = GetOwner();
 	if (!IsValid(Owner))
@@ -282,4 +288,18 @@ void UCatSkillComponent::SpawnAura()
 		FRotator::ZeroRotator,
 		EAttachLocation::SnapToTarget,
 		/*bAutoDestroy=*/true);
+
+	if (!IsValid(ActiveAuraComponent))
+	{
+		return;
+	}
+
+	// StunStack of the current target (0 if no target found yet, or the target has no
+	// StatusComponent) — see NEXT.md section 7's Aura state mapping.
+	const UStatusComponent* TargetStatus = IsValid(TargetActor) ? TargetActor->FindComponentByClass<UStatusComponent>() : nullptr;
+	const int32 CurrentStunStack = IsValid(TargetStatus) ? TargetStatus->GetStunStack() : 0;
+	const float Intensity = static_cast<float>(CurrentStunStack) / static_cast<float>(UStatusComponent::MaxStunStack);
+
+	ActiveAuraComponent->SetVariableInt(CatFXParamNames::StunStack, CurrentStunStack);
+	ActiveAuraComponent->SetVariableFloat(CatFXParamNames::FXIntensity, Intensity);
 }

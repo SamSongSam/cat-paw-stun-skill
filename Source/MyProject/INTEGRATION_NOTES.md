@@ -50,6 +50,26 @@ PublicDependencyModuleNames.AddRange(new string[] {
 
 **ยังไม่ทำ**: target detection, projectile, hit/stun, gold, carry item, AI, cat lick — เป็น Phase 3 เป็นต้นไปตาม `CatSkill_test.md` section 35 จะเพิ่มทีหลังทีละ phase
 
+## 6. Dynamic FX — Niagara User Parameters ที่ต้องสร้างเอง (NEXT.md)
+
+C++ ฝั่ง Gameplay push ค่าพวกนี้เข้า Niagara ผ่าน `UNiagaraComponent::SetVariable*` (`FName` คงที่อยู่ใน [CatFXParamNames.h](Gameplay/Effects/CatFXParamNames.h)) — ถ้า User Parameter ชื่อ/ชนิดไม่ตรงกับที่ Niagara System เอง define ไว้ การ set จะเงียบๆ ไม่มี error แค่ไม่เกิดอะไรขึ้น ต้องสร้างเองใน Editor ให้ตรงชื่อ/ชนิดเป๊ะๆ ดังนี้:
+
+| Niagara System | User Parameter | ชนิด | ใครเขียนค่า | Set เมื่อไหร่ |
+|---|---|---|---|---|
+| `NS_CatAura` (`DA_CatPawSkill.AuraSystem`) | `StunStack` | int32 | `CatSkillComponent::SpawnAura` | ทันทีหลัง spawn aura (อ่านจาก target ปัจจุบัน ถ้ายังไม่มี target = 0) |
+| `NS_CatAura` | `FXIntensity` | float (0-1) | `CatSkillComponent::SpawnAura` | เดียวกับด้านบน — `StunStack / 4` |
+| Trail/main paw system (ตั้งใน `BP_PawProjectile`'s `NiagaraComponent`) | `TargetPosition` | Vector | `CatPawProjectile::InitializeProjectile` | ตอน spawn projectile (fix ค่าเดียวตลอด flight ตาม section 5) |
+| Trail system | `DistanceToTarget` | float | เดียวกับด้านบน | เดียวกับด้านบน |
+| Trail system | `AttackVelocity` | Vector | เดียวกับด้านบน | เดียวกับด้านบน |
+| `DA_CatPawSkill.ImpactSystem` | `HitLocation` | Vector | `CatPawProjectile::SpawnImpactFX` | ตอน hit ก่อน `Activate()` |
+| `ImpactSystem` | `HitNormal` | Vector | เดียวกับด้านบน | เดียวกับด้านบน |
+| `ImpactSystem` | `StunStack` | int32 | เดียวกับด้านบน | เดียวกับด้านบน (stack **หลัง** hit นี้ ไม่ใช่ก่อน) |
+| `ImpactSystem` | `FXIntensity` | float (0-1) | เดียวกับด้านบน | เดียวกับด้านบน |
+
+หมายเหตุ:
+- `StunStack` มาจาก `UStatusComponent::GetStunStack()` บน**ตัวที่โดนตี** (ไม่ใช่ตัวแมว) — เพดานอยู่ที่ 4 (`UStatusComponent::MaxStunStack`) ค้างที่ 4 ไปเรื่อยๆ จนกว่า payoff phase (Cat Treat/Lick, section 11 ยังไม่ implement) จะเรียก `ResetStunStack()`
+- ทุก emitter/graph ที่จะ react กับพารามิเตอร์พวกนี้ต้อง bind เอง (ผูก scale/velocity/color เข้ากับ User Parameter) — โค้ด C++ แค่ set ค่าให้ ไม่ได้สร้าง node ใน graph ให้
+
 ## สงสัย/ติดตรงไหนบอกได้เลย
 
 ถ้า compile แล้ว error หรือ module ไม่ตรงกับที่โปรเจกต์จริงตั้งไว้ (เช่นใช้ GAS อยู่แล้ว, ชื่อ module ไม่ใช่ MyProject) บอกมาได้เลยจะปรับให้ตรง

@@ -47,7 +47,10 @@ protected:
 	// Phase 2: spawns SkillData->AuraSystem attached to the owner. No-op (with a log warning) if
 	// SkillData or AuraSystem is unset — never assume the designer has assigned them (see UE
 	// crash-prevention checklist: always IsValid() a UPROPERTY asset reference before use).
-	void SpawnAura();
+	// TargetActor (may be null — no target found yet) is used only to read its current
+	// StunStack/FXIntensity so the aura reflects gameplay state on spawn (NEXT.md section 7);
+	// it does not change what the aura attaches to or how it's spawned.
+	void SpawnAura(AActor* TargetActor);
 
 	// Phase 3: sphere overlap within SkillData->Range, filtered to actors that
 	// have an EffectReceiverComponent (section 29 — never a specific enemy

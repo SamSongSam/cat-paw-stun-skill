@@ -4,14 +4,18 @@
 //          HomingTargetComponent) and on-hit effect delivery. Ignores the
 //          spawning skill's own owner via CollisionComponent's ignore list
 //          (set by CatSkillComponent::SpawnProjectile) so the projectile
-//          cannot hit whoever cast the skill.
-// Depends on: CatPawProjectile.h, EffectReceiverComponent.h
+//          cannot hit whoever cast the skill. Also implements the Dynamic FX
+//          parameter push (NEXT.md sections 4-5, 10) — see header.
+// Depends on: CatPawProjectile.h, EffectReceiverComponent.h, StatusComponent.h,
+//             CatFXParamNames.h
 // Consumed by: n/a (module compile unit)
 // Exposed params: none beyond the header's UPROPERTY list
 // #endregion
 
 #include "CatPawProjectile.h"
 #include "EffectReceiverComponent.h"
+#include "StatusComponent.h"
+#include "CatFXParamNames.h"
 #include "Components/SphereComponent.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
@@ -63,6 +67,31 @@ void ACatPawProjectile::InitializeProjectile(AActor* InTargetActor, const TArray
 			ProjectileMovement->HomingTargetComponent = TargetRoot;
 		}
 	}
+
+	UpdateDynamicMotionParameters();
+}
+
+void ACatPawProjectile::UpdateDynamicMotionParameters()
+{
+	if (!IsValid(NiagaraComponent) || !IsValid(ProjectileMovement))
+	{
+		return;
+	}
+
+	const FVector TargetLocation = IsValid(TargetActor) ? TargetActor->GetActorLocation() : GetActorLocation();
+	const float Distance = FVector::Dist(GetActorLocation(), TargetLocation);
+
+	// ProjectileMovement->Velocity is not guaranteed to be populated yet at this point in the
+	// spawn sequence (it derives Velocity from InitialSpeed on its own BeginPlay/first tick) — fall
+	// back to direction * InitialSpeed, which is what it will converge to, so AttackVelocity is
+	// never a stale zero vector for the trail's first frame.
+	const FVector Velocity = ProjectileMovement->Velocity.IsNearlyZero()
+		? GetActorForwardVector() * ProjectileMovement->InitialSpeed
+		: ProjectileMovement->Velocity;
+
+	NiagaraComponent->SetVariableVec3(CatFXParamNames::TargetPosition, TargetLocation);
+	NiagaraComponent->SetVariableFloat(CatFXParamNames::DistanceToTarget, Distance);
+	NiagaraComponent->SetVariableVec3(CatFXParamNames::AttackVelocity, Velocity);
 }
 
 void ACatPawProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
@@ -89,11 +118,39 @@ void ACatPawProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
 			"no effects applied."), *GetNameSafe(OtherActor));
 	}
 
-	if (IsValid(ImpactSystem))
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactSystem, Hit.Location);
-	}
+	// Read StunStack after ReceiveEffect so the impact reflects the stack this exact hit produced
+	// (Stun effects, if present in EffectsToApply, already incremented it above via ApplyStun).
+	const UStatusComponent* HitStatus = IsValid(OtherActor) ? OtherActor->FindComponentByClass<UStatusComponent>() : nullptr;
+	const int32 HitStunStack = IsValid(HitStatus) ? HitStatus->GetStunStack() : 0;
+
+	SpawnImpactFX(Hit, HitStunStack);
 
 	OnProjectileImpact(OtherActor);
 	Destroy();
+}
+
+void ACatPawProjectile::SpawnImpactFX(const FHitResult& Hit, int32 HitStunStack) const
+{
+	if (!IsValid(ImpactSystem))
+	{
+		return;
+	}
+
+	UNiagaraComponent* ImpactComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+		this, ImpactSystem, Hit.Location, Hit.Normal.Rotation(), FVector(1.0f),
+		/*bAutoDestroy=*/true, /*bAutoActivate=*/false);
+
+	if (!IsValid(ImpactComponent))
+	{
+		return;
+	}
+
+	const float Intensity = static_cast<float>(HitStunStack) / static_cast<float>(UStatusComponent::MaxStunStack);
+
+	ImpactComponent->SetVariableVec3(CatFXParamNames::HitLocation, Hit.Location);
+	ImpactComponent->SetVariableVec3(CatFXParamNames::HitNormal, Hit.Normal);
+	ImpactComponent->SetVariableInt(CatFXParamNames::StunStack, HitStunStack);
+	ImpactComponent->SetVariableFloat(CatFXParamNames::FXIntensity, Intensity);
+
+	ImpactComponent->Activate(true);
 }
