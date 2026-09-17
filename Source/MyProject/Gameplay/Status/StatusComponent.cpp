@@ -82,6 +82,17 @@ void UStatusComponent::RemoveStun()
 		}
 	}
 
+	// NEXT.md section 3 cycle: 0->1->2->3->4->reset. The reset fires here — when the stun that
+	// pushed the stack to its ceiling naturally wears off — rather than the instant that hit
+	// landed in ApplyStun. Resetting immediately in ApplyStun would make GetStunStack() already
+	// read 0 by the time that same hit's impact FX (CatPawProjectile::OnHit) and gold-cost scaling
+	// (CatSkillComponent::BuildEffectSpecs) look at it, so the hit that actually maxes the stack
+	// would visually/economically look like the WEAKEST hit instead of the strongest.
+	if (StunStack >= MaxStunStack)
+	{
+		ResetStunStack();
+	}
+
 	OnStunEnded();
 }
 

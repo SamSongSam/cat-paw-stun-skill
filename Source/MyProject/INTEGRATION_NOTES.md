@@ -76,7 +76,8 @@ C++ ฝั่ง Gameplay push ค่าพวกนี้เข้า Niagara �
 | `ImpactSystem` | `FXIntensity` | float (0-1) | เดียวกับด้านบน | เดียวกับด้านบน |
 
 หมายเหตุ:
-- `StunStack` มาจาก `UStatusComponent::GetStunStack()` บน**ตัวที่โดนตี** (ไม่ใช่ตัวแมว) — เพดานเป็นค่า `EditDefaultsOnly` (`UStatusComponent::MaxStunStack`, default = 4, ปรับได้ต่อ Blueprint เช่นบอสจะให้เพดานสูงกว่าศัตรูทั่วไปก็ได้) ค้างที่เพดานไปเรื่อยๆ จนกว่า payoff phase (Cat Treat/Lick, section 11 ยังไม่ implement) จะเรียก `ResetStunStack()`
+- `StunStack` มาจาก `UStatusComponent::GetStunStack()` บน**ตัวที่โดนตี** (ไม่ใช่ตัวแมว) — เพดานเป็นค่า `EditDefaultsOnly` (`UStatusComponent::MaxStunStack`, default = 4, ปรับได้ต่อ Blueprint เช่นบอสจะให้เพดานสูงกว่าศัตรูทั่วไปก็ได้) วน 0→1→2→3→4→reset อัตโนมัติ: `RemoveStun()` จะ reset stack กลับเป็น 0 เองตอนที่ stun ตัวที่ทำให้ stack ถึงเพดานหมดเวลาไปแล้ว (ไม่ reset ทันทีตอนโดนตีครั้งที่ 4 — ถ้า reset ทันทีจะทำให้ impact FX/gold ของการตีครั้งที่ทำให้ stack เต็มดันอ่านเห็นค่า 0 แทนที่จะเป็น 4)
+- ค่า `GoldCost` effect ถูก scale ตาม stack แล้ว: `CatSkillComponent::BuildEffectSpecs` คูณ `Magnitude` ของทุก effect ที่ type เป็น `Effect.GoldCost` ด้วย "stack ที่กำลังจะเป็นหลังจากตีครั้งนี้" (1x ตีแรก, 2x ตีที่สอง, ... สูงสุดตาม `MaxStunStack`) — ตั้งค่า `Magnitude` ใน Data Asset เป็นค่า**ฐาน** (ตีแรก) เท่านั้น ไม่ต้องคูณเผื่อเอง
 - ทุก emitter/graph ที่จะ react กับพารามิเตอร์พวกนี้ต้อง bind เอง (ผูก scale/velocity/color เข้ากับ User Parameter) — โค้ด C++ แค่ set ค่าให้ ไม่ได้สร้าง node ใน graph ให้
 
 ## สงสัย/ติดตรงไหนบอกได้เลย

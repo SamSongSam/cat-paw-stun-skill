@@ -6,10 +6,13 @@
 //          are named in the doc but NOT implemented; add them only when a
 //          skill actually needs one, following this same ApplyX/timer pattern.
 //          Also owns StunStack (NEXT.md section 3) — the 0-4 "how many times has
-//          this actor been zapped" counter that drives Dynamic FX escalation. It
-//          lives here (not in CatSkillComponent) because the target, not the
-//          caster, is the thing the escalation is about, and StatusComponent is
-//          already the existing per-actor status authority — no second stack.
+//          this actor been zapped" counter that drives Dynamic FX escalation AND
+//          gold-cost scaling (CatSkillComponent::BuildEffectSpecs). It lives here
+//          (not in CatSkillComponent) because the target, not the caster, is the
+//          thing the escalation is about, and StatusComponent is already the
+//          existing per-actor status authority — no second stack. Cycles
+//          0->1->2->3->4->reset automatically: RemoveStun() resets it once the
+//          stun that pushed it to MaxStunStack naturally wears off.
 // Depends on: none beyond engine timer manager
 // Consumed by: UEffectReceiverComponent (Stun effect -> ApplyStun); CatSkillComponent
 //              and CatPawProjectile read GetStunStack() to drive Niagara User Parameters
@@ -52,10 +55,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Status")
 	int32 GetMaxStunStack() const { return MaxStunStack; }
 
-	// Clamps at MaxStunStack and stays there; nothing resets it automatically yet, since the
-	// Cat Treat/Lick payoff that owns the reset trigger is a later phase (NEXT.md section 11) —
-	// wiring a reset to nothing would be inventing behavior that isn't specified. Call this from
-	// that future payoff phase once it exists; nothing calls it yet.
+	// Zeroes the stack and broadcasts OnStunStackChanged. Called automatically by RemoveStun() once
+	// a stun that maxed the stack wears off (completing the 0->4->reset cycle) — also
+	// BlueprintCallable so a future Cat Treat/Lick payoff phase (NEXT.md section 11) can trigger an
+	// early reset of its own once that system exists; nothing else calls it yet.
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void ResetStunStack();
 	// #endregion

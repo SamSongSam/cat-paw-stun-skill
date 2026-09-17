@@ -15,6 +15,7 @@
 #include "EffectReceiverComponent.h"
 #include "StatusComponent.h"
 #include "CatFXParamNames.h"
+#include "CatGameplayTags.h"
 #include "CatPawProjectile.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/Engine.h"
@@ -251,10 +252,27 @@ TArray<FGameplayEffectSpec> UCatSkillComponent::BuildEffectSpecs(AActor* TargetA
 	}
 
 	Specs = SkillData->Effects;
+
+	// NEXT.md section 6: repeated hits must escalate the actual payoff, not just the FX — each
+	// GoldCost effect's Magnitude scales by how many times this target will have been stunned
+	// once this hit lands (1st hit = base amount, 2nd = 2x, ... capped at MaxStunStack). Computed
+	// here (before the hit happens) rather than in EffectReceiverComponent's dispatch so the
+	// result never depends on which order Stun/GoldCost appear in SkillData->Effects[] — the skill
+	// is the one place that already knows both the target and the Data Asset's base Magnitude.
+	const UStatusComponent* TargetStatus = IsValid(TargetActor) ? TargetActor->FindComponentByClass<UStatusComponent>() : nullptr;
+	const int32 UpcomingStunStack = IsValid(TargetStatus)
+		? FMath::Clamp(TargetStatus->GetStunStack() + 1, 1, TargetStatus->GetMaxStunStack())
+		: 1;
+
 	for (FGameplayEffectSpec& Spec : Specs)
 	{
 		Spec.Source = GetOwner();
 		Spec.Target = TargetActor;
+
+		if (Spec.Type == CatGameplayTags::Effect_GoldCost)
+		{
+			Spec.Magnitude *= static_cast<float>(UpcomingStunStack);
+		}
 	}
 	return Specs;
 }
