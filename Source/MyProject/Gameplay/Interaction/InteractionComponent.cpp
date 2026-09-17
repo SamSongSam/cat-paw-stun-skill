@@ -20,7 +20,7 @@ UInteractionComponent::UInteractionComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UInteractionComponent::MoveToActorAndDeliver(AActor* Target, float AcceptanceRadius)
+void UInteractionComponent::MoveToActorAndDeliver(AActor* Target)
 {
 	if (!IsValid(Target))
 	{
