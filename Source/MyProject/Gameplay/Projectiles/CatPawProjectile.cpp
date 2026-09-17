@@ -39,9 +39,13 @@ ACatPawProjectile::ACatPawProjectile()
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
 	NiagaraComponent->SetupAttachment(CollisionComponent);
 
-	// Homing dash toward whatever InitializeProjectile sets as HomingTargetComponent. Values below
-	// are the prototype defaults — designers retune them on BP_PawProjectile (EditDefaultsOnly),
-	// never by editing this constructor.
+	// Homing dash toward whatever InitializeProjectile sets as HomingTargetComponent.
+	// HomingAccelerationMagnitude is the prototype default — designers retune it on
+	// BP_PawProjectile (EditDefaultsOnly), never by editing this constructor. Initial/MaxSpeed
+	// below are only a preview/fallback value for looking at this actor in isolation (e.g. dropped
+	// into a level directly) — InitializeProjectile always overwrites both from
+	// SkillData->ProjectileSpeed once a real skill spawns this projectile, so the number that
+	// actually matters in-game lives on the Data Asset, not here.
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->UpdatedComponent = CollisionComponent;
 	ProjectileMovement->InitialSpeed = 2000.0f;
@@ -67,10 +71,27 @@ void ACatPawProjectile::BeginPlay()
 	}
 }
 
-void ACatPawProjectile::InitializeProjectile(AActor* InTargetActor, const TArray<FGameplayEffectSpec>& InEffectsToApply)
+void ACatPawProjectile::InitializeProjectile(AActor* InTargetActor, const TArray<FGameplayEffectSpec>& InEffectsToApply, float LaunchSpeed)
 {
 	TargetActor = InTargetActor;
 	EffectsToApply = InEffectsToApply;
+
+	// Overwrites the constructor's default Initial/MaxSpeed with this specific cast's skill-defined
+	// speed (UCatSkillData::ProjectileSpeed). Without this, every projectile from every skill would
+	// silently move at whatever number happened to be hardcoded in this actor's C++ constructor,
+	// no matter what a designer set on the Data Asset — the exact "changing the config doesn't
+	// change the behavior" bug this function signature is written to prevent (see header comment).
+	if (IsValid(ProjectileMovement) && LaunchSpeed > 0.0f)
+	{
+		ProjectileMovement->InitialSpeed = LaunchSpeed;
+		ProjectileMovement->MaxSpeed = LaunchSpeed;
+	}
+	else if (IsValid(ProjectileMovement))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[CatPawProjectile] %s: InitializeProjectile got LaunchSpeed <= 0 "
+			"(%.1f) — keeping the component's existing Initial/MaxSpeed instead of zeroing it out."),
+			*GetName(), LaunchSpeed);
+	}
 
 	// Homing needs a live scene component to track, not just a location snapshot — this is what
 	// makes the paw continue curving toward a moving target instead of a fixed point.
@@ -84,7 +105,9 @@ void ACatPawProjectile::InitializeProjectile(AActor* InTargetActor, const TArray
 	}
 
 	// Dynamic FX contract (NEXT.md section 5) — distance/velocity are fixed once here, at cast
-	// time, not re-evaluated every frame (this actor doesn't Tick).
+	// time, not re-evaluated every frame (this actor doesn't Tick). Must run AFTER the speed
+	// override above so AttackVelocity's fallback (see UpdateDynamicMotionParameters) reflects
+	// this skill's actual speed, not the constructor default.
 	UpdateDynamicMotionParameters();
 }
 

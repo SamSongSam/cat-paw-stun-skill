@@ -13,9 +13,11 @@
 //             UStatusComponent (reads target's StunStack for impact FX),
 //             CatFXParamNames.h (shared Niagara User Parameter names)
 // Consumed by: UCatSkillComponent::SpawnProjectile()
-// Exposed params: Speed, HomingAcceleration — EditDefaultsOnly on
-//                 BP_PawProjectile so VFX/gameplay can tune dash feel
-//                 without a C++ recompile
+// Exposed params: HomingAccelerationMagnitude — EditDefaultsOnly on BP_PawProjectile (this
+//                 prototype's own per-flight-feel tunable). ProjectileMovement's Initial/MaxSpeed
+//                 are ALSO editable per-BP as a fallback/preview value, but InitializeProjectile
+//                 always overwrites them from SkillData->ProjectileSpeed at spawn time — so the
+//                 actual in-game speed is Data Asset-driven per skill, not per-Blueprint.
 // #endregion
 
 #include "CoreMinimal.h"
@@ -37,12 +39,16 @@ public:
 	ACatPawProjectile();
 
 	// #region Public API
-	// Called by CatSkillComponent right after SpawnActor — sets homing target
-	// and the effects to deliver on hit. Not a constructor param because
-	// SpawnActor's deferred-construction API adds complexity this prototype
-	// does not need yet.
+	// Called by CatSkillComponent right after SpawnActor — sets homing target,
+	// the effects to deliver on hit, and this cast's launch speed. Not
+	// constructor params because SpawnActor's deferred-construction API adds
+	// complexity this prototype does not need yet. LaunchSpeed has no default
+	// value on purpose (see this project's code-style rule against baking a
+	// shared constant into a function signature — CLAUDE.md rule 3) — the
+	// caller must always pass SkillData->ProjectileSpeed explicitly so this
+	// projectile can never silently fall back to some other skill's number.
 	UFUNCTION(BlueprintCallable, Category = "Cat Paw Projectile")
-	void InitializeProjectile(AActor* InTargetActor, const TArray<FGameplayEffectSpec>& InEffectsToApply);
+	void InitializeProjectile(AActor* InTargetActor, const TArray<FGameplayEffectSpec>& InEffectsToApply, float LaunchSpeed);
 	// #endregion
 
 protected:

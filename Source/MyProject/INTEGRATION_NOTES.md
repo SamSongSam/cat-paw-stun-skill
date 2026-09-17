@@ -51,6 +51,12 @@ PublicDependencyModuleNames.AddRange(new string[] {
 
 **ยังไม่ทำ**: target detection, projectile, hit/stun, gold, carry item, AI, cat lick — เป็น Phase 3 เป็นต้นไปตาม `CatSkill_test.md` section 35 จะเพิ่มทีหลังทีละ phase
 
+## 5.1 Bug ที่แก้แล้ว: `DA_CatPawSkill.ProjectileSpeed` เคยไม่มีผลอะไรเลย
+
+ก่อนหน้านี้ `UCatSkillData::ProjectileSpeed` เป็นแค่ field ที่แก้ใน Editor ได้ แต่ไม่มีโค้ดไหนอ่านมันเลย — ความเร็วจริงของ projectile มาจากค่า hardcode ใน `ACatPawProjectile()` constructor (`InitialSpeed = 2000.0f`) เสมอ ไม่ว่า Data Asset จะตั้งค่าอะไรไว้ก็ตาม (ถ้าทำสอง skill ที่ตั้ง ProjectileSpeed ต่างกัน ปาก็จะเร็วเท่ากันอยู่ดี)
+
+ตอนนี้แก้แล้ว: `CatSkillComponent::SpawnProjectile` ส่ง `SkillData->ProjectileSpeed` เข้า `InitializeProjectile(...)` ทุกครั้งที่ spawn — ความเร็วจริงมาจาก Data Asset แล้ว ค่าใน constructor (`2000.0f`) เหลือไว้แค่เป็นค่า preview ตอนลาก `BP_PawProjectile` ไปวางในระดับเปล่าๆ โดยไม่ผ่าน skill
+
 ## 6. Effect Type เป็น Gameplay Tag แล้ว ไม่ใช่ C++ enum
 
 `FGameplayEffectSpec::Type` (เดิมเป็น `enum class EGameplayEffectType`) เปลี่ยนเป็น `FGameplayTag` — ตอนนี้ authoring จาก Editor ล้วนๆ:

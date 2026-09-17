@@ -239,7 +239,9 @@ void UCatSkillComponent::SpawnProjectile(AActor* TargetActor)
 		return;
 	}
 
-	Projectile->InitializeProjectile(TargetActor, BuildEffectSpecs(TargetActor));
+	// SkillData->ProjectileSpeed is the actual per-skill tunable now wired through — see
+	// CatPawProjectile::InitializeProjectile's header comment for the bug this closes.
+	Projectile->InitializeProjectile(TargetActor, BuildEffectSpecs(TargetActor), SkillData->ProjectileSpeed);
 	OnProjectileSpawned(Projectile);
 }
 
