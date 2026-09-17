@@ -60,8 +60,9 @@ protected:
 
 	// Phase 3: sphere overlap within SkillData->Range, filtered to actors that
 	// have an EffectReceiverComponent (section 29 — never a specific enemy
-	// class), then picks the closest one (section 30). Returns nullptr if nothing qualifies —
-	// callers must IsValid()-check before using the result (see ActivateCatSkill).
+	// class) AND are not on the caster's own team (Unreal's built-in GenericTeamId — see
+	// INTEGRATION_NOTES.md section 8), then picks the closest one (section 30). Returns nullptr if
+	// nothing qualifies — callers must IsValid()-check before using the result (see ActivateCatSkill).
 	AActor* FindTarget() const;
 
 	// Phase 4: spawns SkillData->ProjectileClass and hands it TargetActor +

@@ -14,10 +14,12 @@ PublicDependencyModuleNames.AddRange(new string[] {
     "EnhancedInput",   // ต้องมี — ใช้ใน CatPlayerCharacter.cpp
     "Niagara",         // ต้องมี — ใช้ใน CatSkillComponent.cpp / CatSkillData.h
     "GameplayTags",    // ต้องมี — ใช้ใน GameplayEffectTypes.h / CatGameplayTags.h/.cpp
+    "AIModule",        // ต้องมี — ใช้ใน InteractionComponent.cpp (AIController.h) และตอนนี้
+                       // CatSkillComponent.cpp ด้วย (GenericTeamAgentInterface.h, section 8)
 });
 ```
 
-ถ้าไม่เพิ่มตัวพวกนี้ compile จะ error หา header `EnhancedInputComponent.h` / `NiagaraFunctionLibrary.h` / `NativeGameplayTags.h` ไม่เจอ
+ถ้าไม่เพิ่มตัวพวกนี้ compile จะ error หา header `EnhancedInputComponent.h` / `NiagaraFunctionLibrary.h` / `NativeGameplayTags.h` / `AIController.h` / `GenericTeamAgentInterface.h` ไม่เจอ — `AIModule` เป็น dependency เก่าที่หายไปจากรายการนี้มาตลอด (InteractionComponent.cpp ใช้มันอยู่แล้วตั้งแต่แรก ไม่ใช่ของใหม่ทั้งหมด)
 
 ## 3. Asset ที่ต้องสร้างในตัว Editor (โค้ดสร้างให้ไม่ได้ เพราะเป็น .uasset ไม่ใช่ text)
 
@@ -85,6 +87,16 @@ C++ ฝั่ง Gameplay push ค่าพวกนี้เข้า Niagara �
 - `StunStack` มาจาก `UStatusComponent::GetStunStack()` บน**ตัวที่โดนตี** (ไม่ใช่ตัวแมว) — เพดานเป็นค่า `EditDefaultsOnly` (`UStatusComponent::MaxStunStack`, default = 4, ปรับได้ต่อ Blueprint เช่นบอสจะให้เพดานสูงกว่าศัตรูทั่วไปก็ได้) วน 0→1→2→3→4→reset อัตโนมัติ: `RemoveStun()` จะ reset stack กลับเป็น 0 เองตอนที่ stun ตัวที่ทำให้ stack ถึงเพดานหมดเวลาไปแล้ว (ไม่ reset ทันทีตอนโดนตีครั้งที่ 4 — ถ้า reset ทันทีจะทำให้ impact FX/gold ของการตีครั้งที่ทำให้ stack เต็มดันอ่านเห็นค่า 0 แทนที่จะเป็น 4)
 - ค่า `GoldCost` effect ถูก scale ตาม stack แล้ว: `CatSkillComponent::BuildEffectSpecs` คูณ `Magnitude` ของทุก effect ที่ type เป็น `Effect.GoldCost` ด้วย "stack ที่กำลังจะเป็นหลังจากตีครั้งนี้" (1x ตีแรก, 2x ตีที่สอง, ... สูงสุดตาม `MaxStunStack`) — ตั้งค่า `Magnitude` ใน Data Asset เป็นค่า**ฐาน** (ตีแรก) เท่านั้น ไม่ต้องคูณเผื่อเอง
 - ทุก emitter/graph ที่จะ react กับพารามิเตอร์พวกนี้ต้อง bind เอง (ผูก scale/velocity/color เข้ากับ User Parameter) — โค้ด C++ แค่ set ค่าให้ ไม่ได้สร้าง node ใน graph ให้
+
+## 8. Team filtering — ใช้ skill เดียวกันกับตัวละครหลายตัว/บอท/PvP ได้ยังไง
+
+`CatSkillComponent`, `EffectReceiverComponent`, `StatusComponent`, `EconomyComponent` เป็นแค่ `UActorComponent` ธรรมดา — ใส่ชุดนี้ลง Character Blueprint ไหนก็ได้ ไม่ว่าจะเป็นตัวที่ player คุม หรือตัวที่ AIController คุม (bot) เพราะโค้ดเรียก `GetOwner()` เฉยๆ ไม่เคยเช็คว่าใครเป็นคนคุม pawn — ทำให้ skill เดียวกัน (class เดียวกัน หรือแยก `DA_CatPawSkill` คนละอันก็ได้) ใช้ได้กับทั้ง 10 ตัวในโรสเตอร์ ทั้งฝั่ง player, บอท, และ PvP (ตัวละครฝั่งตรงข้ามที่มี component ชุดเดียวกันก็ target เราได้เหมือนกัน)
+
+**Team filter (`FindTarget()` ใน `CatSkillComponent.cpp`)**: ใช้ระบบ team ของ Unreal เอง (`FGenericTeamId` / `IGenericTeamAgentInterface`) ไม่ใช่ระบบที่เขียนขึ้นใหม่ — ตัวละครฝั่งเดียวกัน (team ID ตรงกัน) จะไม่ถูกเลือกเป็น target วิธี set team ต่อฝั่ง:
+
+- **บอท (`AAIController`)**: `AAIController` implement `IGenericTeamAgentInterface` ให้แล้วในตัวเอง — เรียก `SetGenericTeamId(FGenericTeamId(N))` ได้เลย (ใน Blueprint ของ AIController เอง เช่นใน `BeginPlay`, หรือใน C++ ถ้ามี AIController class ของตัวเอง) โดย `N` คือเลข team (0, 1, 2, ...)
+- **Player (`APlayerController`)**: ตัว engine เอง**ไม่ได้** implement `IGenericTeamAgentInterface` ให้ `APlayerController` มาเป็นค่าเริ่มต้น — ถ้าจะให้ผู้เล่นมี team ต้องสร้าง `APlayerController` subclass ของตัวเองที่ implement interface นี้ (`SetGenericTeamId`/`GetGenericTeamId`) แล้วเซ็ต team ID ตอน login/spawn เอง — ส่วนนี้เป็นงาน C++/Editor ที่ต้องทำเพิ่ม ไม่ได้มีให้อัตโนมัติ
+- **ถ้ายังไม่ setup team เลย**: `FindTarget()` จะไม่ block อะไร (ถือว่า caster team = `NoTeam` แล้วข้าม filter ทั้งหมด) — เทสต์ Phase 1-2/3 แบบตัวเดียวไม่มี AIController ทีมก็ยังทำงานเหมือนเดิม ไม่ต้อง setup team ก่อนถึงจะเทสต์ได้
 
 ## สงสัย/ติดตรงไหนบอกได้เลย
 

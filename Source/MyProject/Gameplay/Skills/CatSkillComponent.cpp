@@ -1,8 +1,11 @@
 // #region SUMMARY
 // File: CatSkillComponent.cpp
 // Purpose: Implements Phase 1-2 activation flow — cooldown/state check, spawn aura attached to
-//          owner, notify Blueprint. See CatSkillComponent.h for scope boundary.
-// Depends on: CatSkillData.h, NiagaraFunctionLibrary (engine)
+//          owner, notify Blueprint. See CatSkillComponent.h for scope boundary. FindTarget also
+//          filters by Unreal's built-in team system (GenericTeamId) so the same skill/character
+//          class can be shared across an entire roster (players, AI bots, PvP opponents) without
+//          ever selecting an ally — see FindTarget's comment for how "no team assigned" is handled.
+// Depends on: CatSkillData.h, NiagaraFunctionLibrary (engine), GenericTeamAgentInterface.h (AIModule)
 // Consumed by: ACatPlayerCharacter
 // Exposed params: none beyond the header's UPROPERTY list
 // #endregion
@@ -20,6 +23,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/Engine.h"
 #include "DrawDebugHelpers.h"
+#include "GenericTeamAgentInterface.h"
 
 // Temporary debug helper — see CatPlayerCharacter.cpp for the matching one.
 // Remove once Phase 1-2 input is confirmed working end to end.
@@ -171,6 +175,13 @@ AActor* UCatSkillComponent::FindTarget() const
 		ActorsToIgnore,
 		OverlappingActors);
 
+	// GetTeamIdentifier walks Actor -> its Controller for us (works the same whether Owner is
+	// player-possessed or AI-possessed — see INTEGRATION_NOTES.md section 8 for how to assign a
+	// team on each side). Only enforced when the caster actually HAS a team: an actor nobody has
+	// set a team on yet (early testing, before AIControllers/PlayerController team setup exists)
+	// must not have every other untagged actor silently excluded as a false "ally".
+	const FGenericTeamId CasterTeam = FGenericTeamId::GetTeamIdentifier(Owner);
+
 	AActor* ClosestTarget = nullptr;
 	float ClosestDistSq = FLT_MAX;
 	const FVector OwnerLocation = Owner->GetActorLocation();
@@ -184,6 +195,15 @@ AActor* UCatSkillComponent::FindTarget() const
 
 		// Section 29: filter by "Has EffectReceiverComponent", never by class.
 		if (!IsValid(Candidate->FindComponentByClass<UEffectReceiverComponent>()))
+		{
+			continue;
+		}
+
+		// Same-team actors are never valid targets — this is what lets the same skill/character
+		// class be shared across a whole roster (players, bots, PvP opponents) without ever hitting
+		// your own allies, as long as each side's Controller has a team assigned.
+		if (CasterTeam != FGenericTeamId::NoTeam
+			&& FGenericTeamId::GetTeamIdentifier(Candidate) == CasterTeam)
 		{
 			continue;
 		}
