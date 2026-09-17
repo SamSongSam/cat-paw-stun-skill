@@ -29,41 +29,66 @@ class MYPROJECT_API UStatusComponent : public UActorComponent
 public:
 	UStatusComponent();
 
+	// #region Stun API
 	// No-ops (does not restart the timer) if already stunned — see section
 	// 10 flow: stop movement, disable AI, play stunned state, timer, remove.
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void ApplyStun(float Duration);
 
+	// True for the duration passed to the most recent ApplyStun() call, false once RemoveStun()'s
+	// timer fires. Read this instead of touching bIsStunned directly from outside the class.
 	UFUNCTION(BlueprintPure, Category = "Status")
 	bool IsStunned() const { return bIsStunned; }
+	// #endregion
 
-	// NEXT.md section 3: gameplay-driven stack, max 4, incremented once per ApplyStun call
-	// (including re-hits while already stunned — that's what "repeated hits escalate" means).
-	// Clamps at MaxStunStack and stays there; nothing resets it automatically yet, since the
-	// Cat Treat/Lick payoff that owns the reset trigger is a later phase (NEXT.md section 11) —
-	// wiring a reset to nothing would be inventing behavior that isn't specified.
+	// #region StunStack API (NEXT.md section 3 — Dynamic FX escalation counter)
+	// Current escalation count, 0..MaxStunStack. Incremented once per ApplyStun call (including
+	// re-hits while already stunned — that's what "repeated hits escalate" means). Read this from
+	// the FX layer (CatSkillComponent/CatPawProjectile) to drive Niagara User Parameters.
 	UFUNCTION(BlueprintPure, Category = "Status")
 	int32 GetStunStack() const { return StunStack; }
 
-	// For the future payoff phase to call once it exists — not invoked anywhere yet.
+	// Escalation ceiling for THIS actor instance (see MaxStunStack below for why it's per-instance).
+	UFUNCTION(BlueprintPure, Category = "Status")
+	int32 GetMaxStunStack() const { return MaxStunStack; }
+
+	// Clamps at MaxStunStack and stays there; nothing resets it automatically yet, since the
+	// Cat Treat/Lick payoff that owns the reset trigger is a later phase (NEXT.md section 11) —
+	// wiring a reset to nothing would be inventing behavior that isn't specified. Call this from
+	// that future payoff phase once it exists; nothing calls it yet.
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void ResetStunStack();
-
-	static constexpr int32 MaxStunStack = 4;
+	// #endregion
 
 protected:
+	// #region Internal helpers
+	// Timer callback bound in ApplyStun; restores movement and fires OnStunEnded.
 	void RemoveStun();
+	// #endregion
 
+	// #region State (Golden Rule: C++ owns gameplay state, Blueprint only reacts to it)
 	UPROPERTY(BlueprintReadOnly, Category = "Status")
 	bool bIsStunned = false;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Status")
 	int32 StunStack = 0;
 
-	FTimerHandle StunTimerHandle;
+	// Was a hardcoded `static constexpr int32 = 4` — moved to EditDefaultsOnly per this project's
+	// own code-style rule 3 (every tunable value auto-exposes to the editor). A designer can now
+	// give a specific enemy (e.g. a boss) a different escalation cap without a C++ recompile. It's
+	// a per-instance UPROPERTY rather than a shared constant precisely so different enemy Blueprints
+	// can set different values — that's also why callers outside this class (CatSkillComponent,
+	// CatPawProjectile) must go through GetMaxStunStack() on a specific component instance instead
+	// of reading a static value.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Status", meta = (ClampMin = "1"))
+	int32 MaxStunStack = 4;
 
-	// Presentation hooks — Blueprint/AnimBP reacts to these (Golden Rule:
-	// C++ owns the state, Blueprint owns how it looks).
+	// Drives RemoveStun() — not exposed, purely an implementation detail of the timed-stun mechanic.
+	FTimerHandle StunTimerHandle;
+	// #endregion
+
+	// #region Presentation hooks (Blueprint/AnimBP reacts to these — Golden Rule: C++ owns state,
+	// Blueprint owns how it looks; none of these are implemented in C++, they're pure hand-off points)
 	UFUNCTION(BlueprintImplementableEvent, Category = "Status")
 	void OnStunStarted(float Duration);
 
@@ -78,4 +103,5 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Status")
 	void OnStunStackMaxed();
+	// #endregion
 };

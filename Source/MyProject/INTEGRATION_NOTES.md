@@ -13,10 +13,11 @@ PublicDependencyModuleNames.AddRange(new string[] {
     "Core", "CoreUObject", "Engine", "InputCore",
     "EnhancedInput",   // ต้องมี — ใช้ใน CatPlayerCharacter.cpp
     "Niagara",         // ต้องมี — ใช้ใน CatSkillComponent.cpp / CatSkillData.h
+    "GameplayTags",    // ต้องมี — ใช้ใน GameplayEffectTypes.h / CatGameplayTags.h/.cpp
 });
 ```
 
-ถ้าไม่เพิ่มสองตัวนี้ compile จะ error หา header `EnhancedInputComponent.h` / `NiagaraFunctionLibrary.h` ไม่เจอ
+ถ้าไม่เพิ่มตัวพวกนี้ compile จะ error หา header `EnhancedInputComponent.h` / `NiagaraFunctionLibrary.h` / `NativeGameplayTags.h` ไม่เจอ
 
 ## 3. Asset ที่ต้องสร้างในตัว Editor (โค้ดสร้างให้ไม่ได้ เพราะเป็น .uasset ไม่ใช่ text)
 
@@ -50,7 +51,15 @@ PublicDependencyModuleNames.AddRange(new string[] {
 
 **ยังไม่ทำ**: target detection, projectile, hit/stun, gold, carry item, AI, cat lick — เป็น Phase 3 เป็นต้นไปตาม `CatSkill_test.md` section 35 จะเพิ่มทีหลังทีละ phase
 
-## 6. Dynamic FX — Niagara User Parameters ที่ต้องสร้างเอง (NEXT.md)
+## 6. Effect Type เป็น Gameplay Tag แล้ว ไม่ใช่ C++ enum
+
+`FGameplayEffectSpec::Type` (เดิมเป็น `enum class EGameplayEffectType`) เปลี่ยนเป็น `FGameplayTag` — ตอนนี้ authoring จาก Editor ล้วนๆ:
+
+- ใน Data Asset (`DA_CatPawSkill.Effects[]`) หรือที่ไหนก็ตามที่มี `FGameplayEffectSpec` field ให้กรอก จะเห็น **tag picker** (ต้นไม้ + ช่องค้นหา) แทน dropdown enum เดิม — เลือกจาก `Effect.Stun`, `Effect.GoldCost`, `Effect.CarryItem`, `Effect.MoveToActor`, `Effect.TransferItem`
+- Tag 5 ตัวนี้ประกาศแบบ native ใน [CatGameplayTags.h](Gameplay/Effects/CatGameplayTags.h) / `.cpp` เพราะเป็นตัวที่ `EffectReceiverComponent::ReceiveEffect` มี logic รองรับจริง — ไม่ต้องไปสร้าง `.ini` เอง จะขึ้นให้อัตโนมัติใน **Project Settings > Gameplay Tags**
+- ถ้าจะเพิ่ม effect type ใหม่ (เช่น `Effect.Burn`): สร้าง tag ใหม่ได้จาก **Project Settings > Gameplay Tags > Add New Gameplay Tag** โดยไม่ต้องแตะโค้ดเลย — แต่ตัว behavior ยังต้องมีคนเพิ่ม `else if (Type == ...)` ใน `EffectReceiverComponent.cpp` อยู่ดี (dispatch logic เป็น Gameplay → C++ ตาม Golden Rule ของโปรเจกต์ ทำให้ data-only ทั้งหมดไม่ได้) — ถ้าลืมเพิ่ม จะไม่ crash แค่ log warning `unrecognized effect Type tag` แล้วไม่ทำอะไร
+
+## 7. Dynamic FX — Niagara User Parameters ที่ต้องสร้างเอง (NEXT.md)
 
 C++ ฝั่ง Gameplay push ค่าพวกนี้เข้า Niagara ผ่าน `UNiagaraComponent::SetVariable*` (`FName` คงที่อยู่ใน [CatFXParamNames.h](Gameplay/Effects/CatFXParamNames.h)) — ถ้า User Parameter ชื่อ/ชนิดไม่ตรงกับที่ Niagara System เอง define ไว้ การ set จะเงียบๆ ไม่มี error แค่ไม่เกิดอะไรขึ้น ต้องสร้างเองใน Editor ให้ตรงชื่อ/ชนิดเป๊ะๆ ดังนี้:
 
@@ -67,7 +76,7 @@ C++ ฝั่ง Gameplay push ค่าพวกนี้เข้า Niagara �
 | `ImpactSystem` | `FXIntensity` | float (0-1) | เดียวกับด้านบน | เดียวกับด้านบน |
 
 หมายเหตุ:
-- `StunStack` มาจาก `UStatusComponent::GetStunStack()` บน**ตัวที่โดนตี** (ไม่ใช่ตัวแมว) — เพดานอยู่ที่ 4 (`UStatusComponent::MaxStunStack`) ค้างที่ 4 ไปเรื่อยๆ จนกว่า payoff phase (Cat Treat/Lick, section 11 ยังไม่ implement) จะเรียก `ResetStunStack()`
+- `StunStack` มาจาก `UStatusComponent::GetStunStack()` บน**ตัวที่โดนตี** (ไม่ใช่ตัวแมว) — เพดานเป็นค่า `EditDefaultsOnly` (`UStatusComponent::MaxStunStack`, default = 4, ปรับได้ต่อ Blueprint เช่นบอสจะให้เพดานสูงกว่าศัตรูทั่วไปก็ได้) ค้างที่เพดานไปเรื่อยๆ จนกว่า payoff phase (Cat Treat/Lick, section 11 ยังไม่ implement) จะเรียก `ResetStunStack()`
 - ทุก emitter/graph ที่จะ react กับพารามิเตอร์พวกนี้ต้อง bind เอง (ผูก scale/velocity/color เข้ากับ User Parameter) — โค้ด C++ แค่ set ค่าให้ ไม่ได้สร้าง node ใน graph ให้
 
 ## สงสัย/ติดตรงไหนบอกได้เลย

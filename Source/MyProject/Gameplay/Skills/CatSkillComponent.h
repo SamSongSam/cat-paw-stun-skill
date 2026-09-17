@@ -34,16 +34,22 @@ class MYPROJECT_API UCatSkillComponent : public UActorComponent
 public:
 	UCatSkillComponent();
 
-	// Entry point wired from Enhanced Input (see ACatPlayerCharacter::HandleCatSkillInput).
+	// #region Public API
+	// Entry point wired from Enhanced Input (see ACatPlayerCharacter::HandleCatSkillInput). Runs
+	// the whole cast in one call: cooldown check -> target search -> aura -> projectile.
 	UFUNCTION(BlueprintCallable, Category = "Cat Skill")
 	void ActivateCatSkill();
 
+	// True only when SkillData is assigned, no cast is currently in flight, and cooldown has
+	// elapsed since LastCastTime. Safe to call every frame from Blueprint (e.g. to grey out a UI icon).
 	UFUNCTION(BlueprintPure, Category = "Cat Skill")
 	bool CanActivateSkill() const;
+	// #endregion
 
 protected:
 	virtual void BeginPlay() override;
 
+	// #region Cast pipeline (called in this order from ActivateCatSkill)
 	// Phase 2: spawns SkillData->AuraSystem attached to the owner. No-op (with a log warning) if
 	// SkillData or AuraSystem is unset — never assume the designer has assigned them (see UE
 	// crash-prevention checklist: always IsValid() a UPROPERTY asset reference before use).
@@ -54,7 +60,8 @@ protected:
 
 	// Phase 3: sphere overlap within SkillData->Range, filtered to actors that
 	// have an EffectReceiverComponent (section 29 — never a specific enemy
-	// class), then picks the closest one (section 30).
+	// class), then picks the closest one (section 30). Returns nullptr if nothing qualifies —
+	// callers must IsValid()-check before using the result (see ActivateCatSkill).
 	AActor* FindTarget() const;
 
 	// Phase 4: spawns SkillData->ProjectileClass and hands it TargetActor +
@@ -66,7 +73,9 @@ protected:
 	// projectile applies them on hit, this component never touches the
 	// target's components directly (Golden Rule: skill doesn't know enemy).
 	TArray<FGameplayEffectSpec> BuildEffectSpecs(AActor* TargetActor) const;
+	// #endregion
 
+	// #region Tunables and runtime state
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cat Skill")
 	TObjectPtr<UCatSkillData> SkillData;
 
@@ -76,17 +85,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cat Skill|Debug")
 	bool bDebugSkill = false;
 
+	// True only while ActivateCatSkill's own call stack is executing — this is not a "skill is on
+	// cooldown" flag (see LastCastTime for that), it exists purely to reject re-entrant activation.
 	UPROPERTY(BlueprintReadOnly, Category = "Cat Skill")
 	bool bIsSkillActive = false;
 
+	// -1.0f sentinel = "never cast yet"; see CanActivateSkill()'s cooldown formula and
+	// INTEGRATION_NOTES.md section 4 for why the sentinel check is split out from the subtraction.
 	UPROPERTY(BlueprintReadOnly, Category = "Cat Skill")
 	float LastCastTime = -1.0f;
 
 	// Tracks the spawned aura so a future phase can stop/fade it explicitly instead of leaking it.
 	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> ActiveAuraComponent;
+	// #endregion
 
-	// Blueprint hooks for presentation (animation, sound, camera) — C++ never plays those itself.
+	// #region Presentation hooks (Blueprint plays animation/sound/camera work here — C++ never does)
 	UFUNCTION(BlueprintImplementableEvent, Category = "Cat Skill")
 	void OnCatSkillActivated();
 
@@ -98,4 +112,5 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Cat Skill")
 	void OnSkillFinished();
+	// #endregion
 };

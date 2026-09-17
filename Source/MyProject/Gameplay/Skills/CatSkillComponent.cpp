@@ -295,10 +295,15 @@ void UCatSkillComponent::SpawnAura(AActor* TargetActor)
 	}
 
 	// StunStack of the current target (0 if no target found yet, or the target has no
-	// StatusComponent) — see NEXT.md section 7's Aura state mapping.
+	// StatusComponent) — see NEXT.md section 7's Aura state mapping. MaxStunStack is read off the
+	// target's own StatusComponent instance (it's an EditDefaultsOnly tunable now, not a shared
+	// constant — a boss could have a different cap), so with no target we can't normalize against
+	// anything meaningful and just report zero intensity instead of dividing by a guessed value.
 	const UStatusComponent* TargetStatus = IsValid(TargetActor) ? TargetActor->FindComponentByClass<UStatusComponent>() : nullptr;
 	const int32 CurrentStunStack = IsValid(TargetStatus) ? TargetStatus->GetStunStack() : 0;
-	const float Intensity = static_cast<float>(CurrentStunStack) / static_cast<float>(UStatusComponent::MaxStunStack);
+	const float Intensity = IsValid(TargetStatus)
+		? static_cast<float>(CurrentStunStack) / static_cast<float>(FMath::Max(TargetStatus->GetMaxStunStack(), 1))
+		: 0.0f;
 
 	ActiveAuraComponent->SetVariableInt(CatFXParamNames::StunStack, CurrentStunStack);
 	ActiveAuraComponent->SetVariableFloat(CatFXParamNames::FXIntensity, Intensity);

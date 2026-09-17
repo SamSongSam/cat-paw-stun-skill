@@ -6,10 +6,20 @@
 //          CatSkill_test.md section 7: skills never call StatusComponent or
 //          EconomyComponent directly — they build an FGameplayEffectSpec and
 //          hand it to whatever EffectReceiverComponent they hit.
-// Depends on: none (leaf types header)
+//          Type is an FGameplayTag, not a C++ enum — designers pick/author
+//          effect types from the Gameplay Tags tree in the Editor (Project
+//          Settings > Gameplay Tags, or the tag picker on any FGameplayEffectSpec
+//          field), the same way a Unity Inspector enum dropdown works, except
+//          new effect types can be added there without a C++ recompile. The
+//          fixed set EffectReceiverComponent currently knows how to actually
+//          act on is native-registered in CatGameplayTags.h/.cpp — adding a
+//          tag in the Editor alone does not give it behavior, it still needs a
+//          case in EffectReceiverComponent::ReceiveEffect (that dispatch logic
+//          is Gameplay -> C++ per the Golden Rule, and can't be data-only).
+// Depends on: GameplayTags module (see INTEGRATION_NOTES.md section 2)
 // Consumed by: UEffectReceiverComponent (dispatches by Type), UCatSkillData
 //              (Effects[] array), UCatSkillComponent / APawProjectile (build specs)
-// Exposed params: n/a — plain enum + struct, fields are BlueprintReadWrite so
+// Exposed params: n/a — plain struct, fields are BlueprintReadWrite so
 //                 Blueprint can build/inspect specs too
 // #endregion
 
@@ -19,19 +29,7 @@
 
 class UCarryItemData;
 
-// Section 7: keep this list to what the doc specifies now — add a case only
-// when a skill actually needs it, not speculatively.
-UENUM(BlueprintType)
-enum class EGameplayEffectType : uint8
-{
-	Stun,
-	GoldCost,
-	CarryItem,
-	MoveToActor,
-	TransferItem
-};
-
-// Section 7: "Type / Magnitude / Duration / Target / Source / Asset / Tag".
+// Section 7: "Type / Magnitude / Duration / Target / Source / Asset".
 // Not every field is used by every Type (e.g. Magnitude is meaningless for
 // Stun) — EffectReceiverComponent reads only the fields its Type cares about.
 USTRUCT(BlueprintType)
@@ -39,8 +37,12 @@ struct FGameplayEffectSpec
 {
 	GENERATED_BODY()
 
+	// Editor-editable via the Gameplay Tag picker (tree view, searchable, just like an Inspector
+	// enum dropdown) — see CatGameplayTags.h for the tags EffectReceiverComponent currently
+	// dispatches on (Effect.Stun, Effect.GoldCost, Effect.CarryItem, Effect.MoveToActor,
+	// Effect.TransferItem).
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect")
-	EGameplayEffectType Type = EGameplayEffectType::Stun;
+	FGameplayTag Type;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect")
 	float Magnitude = 0.0f;
@@ -58,7 +60,4 @@ struct FGameplayEffectSpec
 	// Used by CarryItem/TransferItem — which item to spawn/attach.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect")
 	TObjectPtr<UCarryItemData> Asset = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect")
-	FGameplayTag Tag;
 };

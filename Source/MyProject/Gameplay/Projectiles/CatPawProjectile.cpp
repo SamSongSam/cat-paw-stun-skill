@@ -23,16 +23,25 @@
 
 ACatPawProjectile::ACatPawProjectile()
 {
+	// Event-driven only (OnComponentHit) — no per-frame gameplay work needed, matches the
+	// project's "no Tick polling" rule.
 	PrimaryActorTick.bCanEverTick = false;
 
+	// Root: a small blocking sphere is the actual collision/movement anchor — the Niagara visual
+	// is attached to it, not the other way around, so the paw's hitbox never depends on FX scale.
 	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComponent"));
 	CollisionComponent->InitSphereRadius(15.0f);
 	CollisionComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	SetRootComponent(CollisionComponent);
 
+	// Placeholder shape for now (Phase 4/5) — Phase 12's procedural SDF paw Material swaps only
+	// what this system's Material looks like, not this component wiring.
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
 	NiagaraComponent->SetupAttachment(CollisionComponent);
 
+	// Homing dash toward whatever InitializeProjectile sets as HomingTargetComponent. Values below
+	// are the prototype defaults — designers retune them on BP_PawProjectile (EditDefaultsOnly),
+	// never by editing this constructor.
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->UpdatedComponent = CollisionComponent;
 	ProjectileMovement->InitialSpeed = 2000.0f;
@@ -46,8 +55,12 @@ void ACatPawProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Bound here (not the constructor) because OnComponentHit needs a live UWorld to fire in.
 	CollisionComponent->OnComponentHit.AddDynamic(this, &ACatPawProjectile::OnHit);
 
+	// GetInstigator() is the caster (set via SpawnParams.Instigator in
+	// CatSkillComponent::SpawnProjectile) — ignored so the paw can't immediately register a hit
+	// against the cat that just threw it.
 	if (IsValid(GetInstigator()))
 	{
 		CollisionComponent->IgnoreActorWhenMoving(GetInstigator(), true);
@@ -59,6 +72,8 @@ void ACatPawProjectile::InitializeProjectile(AActor* InTargetActor, const TArray
 	TargetActor = InTargetActor;
 	EffectsToApply = InEffectsToApply;
 
+	// Homing needs a live scene component to track, not just a location snapshot — this is what
+	// makes the paw continue curving toward a moving target instead of a fixed point.
 	if (IsValid(TargetActor) && IsValid(ProjectileMovement))
 	{
 		USceneComponent* TargetRoot = TargetActor->GetRootComponent();
@@ -68,6 +83,8 @@ void ACatPawProjectile::InitializeProjectile(AActor* InTargetActor, const TArray
 		}
 	}
 
+	// Dynamic FX contract (NEXT.md section 5) — distance/velocity are fixed once here, at cast
+	// time, not re-evaluated every frame (this actor doesn't Tick).
 	UpdateDynamicMotionParameters();
 }
 
@@ -97,6 +114,9 @@ void ACatPawProjectile::UpdateDynamicMotionParameters()
 void ACatPawProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,
 	FVector NormalImpulse, const FHitResult& Hit)
 {
+	// OtherActor == GetInstigator() should already be excluded by IgnoreActorWhenMoving in
+	// BeginPlay, but that only suppresses the physics collision — this is the authoritative
+	// gameplay-side guard against ever delivering effects back onto the caster.
 	if (!IsValid(OtherActor) || OtherActor == this || OtherActor == GetInstigator())
 	{
 		return;
@@ -105,6 +125,9 @@ void ACatPawProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
 	UEffectReceiverComponent* Receiver = OtherActor->FindComponentByClass<UEffectReceiverComponent>();
 	if (IsValid(Receiver))
 	{
+		// A copy per-iteration (FGameplayEffectSpec by value) because Source/Target are filled in
+		// here per-delivery — EffectsToApply itself stays untouched so a future re-hit (if this
+		// projectile ever pierces instead of destroying itself) would still have clean specs.
 		for (FGameplayEffectSpec Effect : EffectsToApply)
 		{
 			Effect.Source = GetInstigator();
@@ -122,14 +145,17 @@ void ACatPawProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
 	// (Stun effects, if present in EffectsToApply, already incremented it above via ApplyStun).
 	const UStatusComponent* HitStatus = IsValid(OtherActor) ? OtherActor->FindComponentByClass<UStatusComponent>() : nullptr;
 	const int32 HitStunStack = IsValid(HitStatus) ? HitStatus->GetStunStack() : 0;
+	// Fallback of 1 (not 0) when there's no StatusComponent — HitStunStack is already 0 in that
+	// case, so 0 / 1 still yields Intensity 0.0 without risking a divide-by-zero.
+	const int32 HitMaxStunStack = IsValid(HitStatus) ? HitStatus->GetMaxStunStack() : 1;
 
-	SpawnImpactFX(Hit, HitStunStack);
+	SpawnImpactFX(Hit, HitStunStack, HitMaxStunStack);
 
 	OnProjectileImpact(OtherActor);
 	Destroy();
 }
 
-void ACatPawProjectile::SpawnImpactFX(const FHitResult& Hit, int32 HitStunStack) const
+void ACatPawProjectile::SpawnImpactFX(const FHitResult& Hit, int32 HitStunStack, int32 HitMaxStunStack) const
 {
 	if (!IsValid(ImpactSystem))
 	{
@@ -145,7 +171,7 @@ void ACatPawProjectile::SpawnImpactFX(const FHitResult& Hit, int32 HitStunStack)
 		return;
 	}
 
-	const float Intensity = static_cast<float>(HitStunStack) / static_cast<float>(UStatusComponent::MaxStunStack);
+	const float Intensity = static_cast<float>(HitStunStack) / static_cast<float>(FMath::Max(HitMaxStunStack, 1));
 
 	ImpactComponent->SetVariableVec3(CatFXParamNames::HitLocation, Hit.Location);
 	ImpactComponent->SetVariableVec3(CatFXParamNames::HitNormal, Hit.Normal);
